@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
 import { useRouter } from "expo-router";
+import * as Location from "expo-location";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/AuthContext";
 
@@ -13,7 +14,23 @@ export default function ProviderOnboard() {
   const [location, setLocation] = useState("");
   const [city, setCity] = useState("Tiranë");
   const [years, setYears] = useState("");
+  const [certifications, setCertifications] = useState("");
+  const [coords, setCoords] = useState(null);
+  const [locStatus, setLocStatus] = useState("idle");
   const [loading, setLoading] = useState(false);
+
+  const captureLocation = async () => {
+    setLocStatus("loading");
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      setLocStatus("denied");
+      Alert.alert("Nuk u dha leje", "Pa lokacionin GPS, klientët nuk do të mund të gjejnë distancën tënde në hartë.");
+      return;
+    }
+    const pos = await Location.getCurrentPositionAsync({});
+    setCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+    setLocStatus("done");
+  };
 
   useEffect(() => {
     supabase.from("categories").select("*").then(({ data }) => setCategories(data || []));
@@ -35,6 +52,9 @@ export default function ProviderOnboard() {
       location,
       city,
       years_experience: parseInt(years, 10) || 0,
+      certifications,
+      latitude: coords?.latitude || null,
+      longitude: coords?.longitude || null,
     });
 
     setLoading(false);
@@ -70,7 +90,25 @@ export default function ProviderOnboard() {
       <TextInput style={[styles.input, styles.textArea]} placeholder="Përshkruaj shkurt eksperiencën tënde" multiline value={bio} onChangeText={setBio} />
       <TextInput style={styles.input} placeholder="Lagja/Lokacioni" value={location} onChangeText={setLocation} />
       <TextInput style={styles.input} placeholder="Qyteti" value={city} onChangeText={setCity} />
+
+      <TouchableOpacity style={styles.locBtn} onPress={captureLocation}>
+        <Text style={styles.locBtnText}>
+          {locStatus === "done"
+            ? "📍 Lokacioni GPS u ruajt ✓"
+            : locStatus === "loading"
+            ? "Duke marrë lokacionin..."
+            : "📍 Vendos Lokacionin Tim (GPS)"}
+        </Text>
+      </TouchableOpacity>
+      <Text style={styles.hint}>Kjo bën që klientët të të gjejnë sipas afërsisë te harta.</Text>
       <TextInput style={styles.input} placeholder="Vite përvojë" keyboardType="numeric" value={years} onChangeText={setYears} />
+      <TextInput
+        style={[styles.input, styles.textArea]}
+        placeholder="Certifikime/trajnime (p.sh. Kurs hidraulike, licencë elektricisti...) — kjo rrit besueshmërinë te klientët"
+        multiline
+        value={certifications}
+        onChangeText={setCertifications}
+      />
 
       <TouchableOpacity style={styles.btn} onPress={submit} disabled={loading}>
         <Text style={styles.btnText}>{loading ? "Duke ruajtur..." : "Bëhu Ofrues"}</Text>
@@ -88,6 +126,9 @@ const styles = StyleSheet.create({
   chipSelected: { backgroundColor: "#1B4B43" },
   chipText: { color: "#1B4B43", fontWeight: "600" },
   chipTextSelected: { color: "#fff" },
+  locBtn: { borderWidth: 1.5, borderColor: "#1B4B43", borderRadius: 10, padding: 14, alignItems: "center", marginBottom: 4 },
+  locBtnText: { color: "#1B4B43", fontWeight: "700" },
+  hint: { color: "#888", fontSize: 12, marginBottom: 12, fontStyle: "italic" },
   input: { backgroundColor: "#fff", borderRadius: 10, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: "#E0DDD5" },
   textArea: { height: 90, textAlignVertical: "top" },
   btn: { backgroundColor: "#1B4B43", padding: 16, borderRadius: 10, alignItems: "center", marginTop: 8, marginBottom: 40 },

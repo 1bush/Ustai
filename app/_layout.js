@@ -16,6 +16,8 @@ export default function RootLayout() {
         <Stack.Screen name="my-requests" options={{ title: "Kërkesat e mia" }} />
         <Stack.Screen name="provider-dashboard" options={{ title: "Paneli i Ofruesit" }} />
         <Stack.Screen name="provider-onboard" options={{ title: "Bëhu Ofrues" }} />
+        <Stack.Screen name="request-open/[id]" options={{ title: "Kërkesë e Hapur" }} />
+        <Stack.Screen name="open-jobs" options={{ title: "Punë të Hapura" }} />
       </Stack>
     </AuthProvider>
   );

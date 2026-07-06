@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Linking, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../lib/AuthContext";
+
+function openInMaps(lat, lng, label) {
+  const url = Platform.select({
+    ios: `maps:0,0?q=${label}@${lat},${lng}`,
+    android: `geo:0,0?q=${lat},${lng}(${label})`,
+  });
+  Linking.openURL(url).catch(() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`));
+}
 
 export default function ProviderProfile() {
   const { id } = useLocalSearchParams();
@@ -42,7 +50,22 @@ export default function ProviderProfile() {
       <View style={styles.section}>
         <Text style={styles.label}>Lokacioni</Text>
         <Text style={styles.value}>{provider.location}, {provider.city}</Text>
+        {provider.latitude && provider.longitude && (
+          <TouchableOpacity
+            style={styles.mapBtn}
+            onPress={() => openInMaps(provider.latitude, provider.longitude, provider.profiles?.full_name || "Ofruesi")}
+          >
+            <Text style={styles.mapBtnText}>🗺️ Hap në Google Maps</Text>
+          </TouchableOpacity>
+        )}
       </View>
+
+      {provider.certifications ? (
+        <View style={styles.section}>
+          <Text style={styles.label}>Certifikime & Trajnime</Text>
+          <Text style={styles.value}>🎓 {provider.certifications}</Text>
+        </View>
+      ) : null}
 
       <View style={styles.section}>
         <Text style={styles.label}>Vlerësimi</Text>
@@ -82,6 +105,8 @@ const styles = StyleSheet.create({
   section: { padding: 16, borderBottomWidth: 1, borderBottomColor: "#E0DDD5" },
   label: { fontSize: 13, color: "#888", marginBottom: 4, textTransform: "uppercase" },
   value: { fontSize: 15, color: "#222" },
+  mapBtn: { marginTop: 8, alignSelf: "flex-start" },
+  mapBtnText: { color: "#1B4B43", fontWeight: "700" },
   reviewCard: { backgroundColor: "#fff", padding: 12, borderRadius: 8, marginTop: 8 },
   reviewComment: { fontStyle: "italic", color: "#555", marginTop: 4 },
   btn: { backgroundColor: "#1B4B43", margin: 20, padding: 16, borderRadius: 10, alignItems: "center" },

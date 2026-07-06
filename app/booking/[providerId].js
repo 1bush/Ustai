@@ -4,6 +4,13 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../lib/AuthContext";
 
+const FREQUENCIES = [
+  { value: "none", label: "Një herë" },
+  { value: "weekly", label: "Çdo javë" },
+  { value: "biweekly", label: "Çdo 2 javë" },
+  { value: "monthly", label: "Çdo muaj" },
+];
+
 export default function BookingForm() {
   const { providerId } = useLocalSearchParams();
   const router = useRouter();
@@ -11,6 +18,7 @@ export default function BookingForm() {
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
   const [preferredDate, setPreferredDate] = useState("");
+  const [frequency, setFrequency] = useState("none");
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
@@ -29,6 +37,7 @@ export default function BookingForm() {
       description,
       address,
       preferred_date: preferredDate || null,
+      recurring_frequency: frequency,
       status: "pending",
     });
 
@@ -60,6 +69,25 @@ export default function BookingForm() {
         value={preferredDate}
         onChangeText={setPreferredDate}
       />
+
+      <Text style={styles.label}>Sa shpesh e do këtë shërbim?</Text>
+      <View style={styles.chipsRow}>
+        {FREQUENCIES.map((f) => (
+          <TouchableOpacity
+            key={f.value}
+            style={[styles.chip, frequency === f.value && styles.chipSelected]}
+            onPress={() => setFrequency(f.value)}
+          >
+            <Text style={[styles.chipText, frequency === f.value && styles.chipTextSelected]}>{f.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      {frequency !== "none" && (
+        <Text style={styles.hint}>
+          Ofruesi do ta shohë këtë si kërkesë të përsëritur dhe do të koordinojë me ty datat e ardhshme.
+        </Text>
+      )}
+
       <TouchableOpacity style={styles.btn} onPress={submit} disabled={loading}>
         <Text style={styles.btnText}>{loading ? "Duke dërguar..." : "Dërgo Kërkesën"}</Text>
       </TouchableOpacity>
@@ -79,6 +107,13 @@ const styles = StyleSheet.create({
     borderColor: "#E0DDD5",
   },
   textArea: { height: 100, textAlignVertical: "top" },
+  label: { fontWeight: "600", color: "#333", marginBottom: 8, marginTop: 4 },
+  chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 8 },
+  chip: { borderWidth: 1, borderColor: "#1B4B43", borderRadius: 20, paddingVertical: 8, paddingHorizontal: 14 },
+  chipSelected: { backgroundColor: "#1B4B43" },
+  chipText: { color: "#1B4B43", fontWeight: "600" },
+  chipTextSelected: { color: "#fff" },
+  hint: { color: "#888", fontSize: 13, marginBottom: 12, fontStyle: "italic" },
   btn: { backgroundColor: "#1B4B43", padding: 16, borderRadius: 10, alignItems: "center", marginTop: 8 },
   btnText: { color: "#fff", fontWeight: "700", fontSize: 16 },
 });

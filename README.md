@@ -4,10 +4,13 @@ Marketplace shërbimesh shtëpiake (hidraulikë, elektricistë, kopshtarë, past
 
 ## Çfarë përfshin
 
-- **Klientët**: shfletojnë kategori → shohin ofrues → dërgojnë kërkesë shërbimi → shohin statusin → lënë vlerësim pas përfundimit
-- **Ofruesit**: regjistrohen, krijojnë profil (kategori, bio, lokacion, përvojë) → marrin kërkesa → pranojnë/refuzojnë → shënojnë si të përfunduara
-- Autentikim me email/password (Supabase Auth)
-- Baza e të dhënave + siguri (RLS) gati për prodhim
+- **Klientët**: shfletojnë kategori → shohin ofrues të renditur sipas distancës/vlerësimit → dërgojnë kërkesë direkte OSE postojnë **kërkesë të hapur** për të marrë oferta nga disa ofrues → zgjedhin ofertën më të mirë → shohin statusin → lënë vlerësim → mund të rezervojnë përsëri ose të ruajnë ofrues të preferuar
+- **Ofruesit**: regjistrohen me kategori + lokacion GPS + certifikime → marrin kërkesa direkte (prano/refuzo/përfundo) → shohin dhe bëjnë oferta te "Punët e Hapura" → ndërtojnë vlerësim me kalimin e kohës
+- **Kategoritë**: Hidraulikë, Elektricistë, Kopshtarë, Pastrues, Piktorë, Marangozë, Pllakaxhi, Bojaxhi, Shtrues Parketesh, Montues Kondicionerash
+- **Lokacion & Hartë**: renditje sipas distancës (GPS), lidhje direkte për Google Maps te çdo ofrues
+- **Sistemi i ofertave** (si Thumbtack): klienti posto një punë të hapur, disa ofrues bëjnë oferta me çmim, klienti zgjedh më të mirën
+- **Rezervime të përsëritura**: çdo javë/2javë/muaj për të njëjtin ofrues
+- Autentikim me email/password (Supabase Auth), bazë e sigurt me RLS
 
 ## Hapi 1 — Krijo projektin Supabase
 
