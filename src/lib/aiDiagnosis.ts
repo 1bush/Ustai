@@ -1,5 +1,7 @@
-// Groq AI Key - Më i shpejtë se Gemini për analizë
-const GROQ_API_KEY = process.env.EXPO_PUBLIC_GROQ_API_KEY;
+// Ollama - AI lokal (pa API key)
+// Shkarko: https://ollama.com, modelo: llama3.2-vision:11b
+const OLLAMA_URL = process.env.EXPO_PUBLIC_OLLAMA_URL || 'http://localhost:11434';
+const OLLAMA_MODEL = process.env.EXPO_PUBLIC_OLLAMA_MODEL || 'llama3.2-vision:11b';
 
 export interface AIDiagnosisResult {
   kategoria_sugjeruar: string;
@@ -10,67 +12,38 @@ export interface AIDiagnosisResult {
 
 export class AIDiagnosisService {
   /**
-   * Analizon foton e problemit duke përdorur Groq AI (Llama 3.2 Vision).
+   * Analizon foton e problemit duke perdorur Ollama (Llama 3.2 Vision lokal).
    */
   static async analyzeProblem(base64Image: string): Promise<AIDiagnosisResult | null> {
-    if (!GROQ_API_KEY || GROQ_API_KEY.includes('VENDOS')) {
-      console.warn('Groq API Key mungon ose është placeholder.');
-      return null;
-    }
-
     try {
-      const url = 'https://api.groq.com/openai/v1/chat/completions';
+      const prompt = `Je nje ekspert ndertimi dhe riparimesh shtepiake ne Shqiperi.
+Analizo kete foto te nje problemi ne shtepi dhe kthe nje pergjigje ne formatin JSON:
+{
+  "kategoria_sugjeruar": "Emri i kategorise (p.sh. Hidraulik, Elektricist)",
+  "pershkrimi_teknik": "Pershkrim i shkurter teknik",
+  "materialet_e_nevojshme": ["Materiali 1", "Materiali 2"],
+  "urgjenca_sugjeruar": "e_ulet" | "mesatare" | "e_larte"
+}
+Pergjigju VETEM me JSON. Gjuha: Shqip.`;
 
-      const prompt = `
-        Je një ekspert ndërtimi dhe riparimesh shtëpiake në Shqipëri.
-        Analizo këtë foto të një problemi në shtëpi dhe kthe një përgjigje në formatin JSON saktësisht si ky bllok:
-        {
-          "kategoria_sugjeruar": "Emri i kategorisë (p.sh. Hidraulik, Elektricist, etj)",
-          "pershkrimi_teknik": "Një përshkrim i shkurtër teknik i asaj që sheh",
-          "materialet_e_nevojshme": ["Materiali 1", "Materiali 2"],
-          "urgjenca_sugjeruar": "e_ulet" | "mesatare" | "e_larte"
-        }
-        Përgjigju VETËM me JSON, pa tekst tjetër. Gjuha: Shqip.
-      `;
-
-      const response = await fetch(url, {
+      const res = await fetch(OLLAMA_URL + '/api/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROQ_API_KEY}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: "llama-3.2-11b-vision-preview",
-          messages: [
-            {
-              role: "user",
-              content: [
-                { type: "text", text: prompt },
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:image/jpeg;base64,${base64Image}`
-                  }
-                }
-              ]
-            }
-          ],
-          temperature: 0.1,
-          response_format: { type: "json_object" }
-        })
+          model: OLLAMA_MODEL,
+          prompt: prompt,
+          images: [base64Image],
+          stream: false,
+          format: 'json',
+        }),
       });
 
-      const data = await response.json();
-
-      if (!data.choices || !data.choices[0]) {
-        throw new Error('Përgjigje e zbrazët nga Groq');
-      }
-
-      const content = data.choices[0].message.content;
-      return JSON.parse(content);
+      const data = await res.json();
+      if (!data.response) throw new Error('Ollama nuk u pergjigj');
+      return JSON.parse(data.response);
 
     } catch (error) {
-      console.error('Groq AI Diagnosis Error:', error);
+      console.error('Ollama Diagnosis Error:', error);
       return null;
     }
   }
