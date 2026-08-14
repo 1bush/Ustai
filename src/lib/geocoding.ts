@@ -1,4 +1,7 @@
-const MAPBOX_ACCESS_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
+/**
+ * Shërbim Geocoding FALAS duke përdorur Nominatim (OpenStreetMap).
+ * Nuk kërkon API Key.
+ */
 
 export interface GeocodeResult {
   placeName: string;
@@ -7,67 +10,67 @@ export interface GeocodeResult {
 }
 
 export class GeocodingService {
+  private static readonly NOMINATIM_URL = 'https://nominatim.openstreetmap.org';
+  private static lastRequest = 0;
+
   /**
    * Geocoding: Kthe adresën në koordinata
+   * Përdor Nominatim (OpenStreetMap) - 100% falas, 1 request/sekond
    */
   static async geocode(query: string): Promise<GeocodeResult | null> {
-    if (!MAPBOX_ACCESS_TOKEN || MAPBOX_ACCESS_TOKEN.includes('Placeholder')) {
-      console.warn('Mapbox Token mungon. Kërkimi nuk do të funksionojë.');
-      return null;
-    }
-
     try {
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-        query
-      )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&limit=1&types=address,place`;
+      // Rate limiting: max 1 request per second
+      const now = Date.now();
+      const wait = Math.max(0, 1000 - (now - this.lastRequest));
+      if (wait > 0) await new Promise(r => setTimeout(r, wait));
+      this.lastRequest = Date.now();
 
-      const response = await fetch(url);
+      const url = `${this.NOMINATIM_URL}/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`;
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'UstaiApp/1.0' }
+      });
       const data = await response.json();
 
-      if (data.features && data.features.length > 0) {
-        const feature = data.features[0];
+      if (data && data.length > 0) {
+        const item = data[0];
         return {
-          placeName: feature.place_name,
-          coordinates: feature.center,
-          context: feature.context,
+          placeName: item.display_name,
+          coordinates: [parseFloat(item.lon), parseFloat(item.lat)],
+          context: item.address,
         };
       }
       return null;
     } catch (error) {
-      console.error('Mapbox Geocoding Error:', error);
+      console.error('Geocoding Error:', error);
       return null;
     }
   }
 
   /**
-   * Autocomplete Search
+   * Autocomplete Search me Nominatim
    */
-  static async searchPlaces(query: string, proximity?: [number, number]) {
-    if (!MAPBOX_ACCESS_TOKEN || MAPBOX_ACCESS_TOKEN.includes('Placeholder')) {
-      return [];
-    }
-
+  static async searchPlaces(query: string, _proximity?: [number, number]) {
     try {
-      let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-        query
-      )}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5&types=poi,address,place`;
+      const now = Date.now();
+      const wait = Math.max(0, 1000 - (now - this.lastRequest));
+      if (wait > 0) await new Promise(r => setTimeout(r, wait));
+      this.lastRequest = Date.now();
 
-      if (proximity) {
-        url += `&proximity=${proximity[0]},${proximity[1]}`;
-      }
-
-      const response = await fetch(url);
+      let url = `${this.NOMINATIM_URL}/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`;
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'UstaiApp/1.0' }
+      });
       const data = await response.json();
 
-      if (!data.features) return [];
+      if (!data) return [];
 
-      return data.features.map((f: any) => ({
-        name: f.place_name,
-        coordinates: f.center,
-        category: f.properties?.category,
+      return data.map((f: any) => ({
+        name: f.display_name,
+        coordinates: [parseFloat(f.lon), parseFloat(f.lat)],
+        category: f.type,
       }));
     } catch (error) {
-      console.error('Mapbox Search Error:', error);
+      console.error('Geocoding Search Error:', error);
       return [];
     }
   }

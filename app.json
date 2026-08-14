@@ -7,12 +7,7 @@
     "android": {
       "adaptiveIcon": {"foregroundImage": "./assets/adaptive-icon.png","backgroundColor": "#000000"},
       "package": "com.ustai.app","versionCode": 2,
-      "permissions": ["ACCESS_COARSE_LOCATION","ACCESS_FINE_LOCATION","CAMERA","RECORD_AUDIO","NOTIFICATIONS"],
-      "config": {
-        "googleMaps": {
-          "apiKey": "VENDOS_GOOGLE_MAPS_API_KEY_KETU"
-        }
-      }
+      "permissions": ["ACCESS_COARSE_LOCATION","ACCESS_FINE_LOCATION","CAMERA","RECORD_AUDIO","NOTIFICATIONS"]
     },
     "plugins": [
       ["expo-notifications", {"icon": "./assets/notification-icon.png","color": "#FF7A1A"}],
