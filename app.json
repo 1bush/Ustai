@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Ustai Im","slug": "ustai-app","version": "1.0.0",
+    "orientation": "portrait","icon": "./assets/icon.png","userInterfaceStyle": "dark",
+    "scheme": "ustai",
+    "splash": {"image": "./assets/splash.png","backgroundColor": "#000000"},
+    "android": {
+      "adaptiveIcon": {"foregroundImage": "./assets/adaptive-icon.png","backgroundColor": "#000000"},
+      "package": "com.ustai.app","versionCode": 2,
+      "permissions": ["ACCESS_COARSE_LOCATION","ACCESS_FINE_LOCATION","CAMERA","RECORD_AUDIO","NOTIFICATIONS"],
+      "config": {
+        "googleMaps": {
+          "apiKey": "VENDOS_GOOGLE_MAPS_API_KEY_KETU"
+        }
+      }
+    },
+    "plugins": [
+      ["expo-notifications", {"icon": "./assets/notification-icon.png","color": "#FF7A1A"}],
+      "expo-location","expo-image-picker",
+      ["@stripe/stripe-react-native", {"enableGooglePay": true}],
+      "expo-splash-screen","expo-system-ui"
+    ],
+    "extra": {"eas": {"projectId": "de2baec7-3257-424a-b954-f1d958453fc9"}}
+  }
+}

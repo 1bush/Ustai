@@ -1,0 +1,31 @@
+# Repository Guidelines
+
+## Project Structure & Module Organization
+The project is a React Native mobile application built with Expo, targeting the Albanian market. It follows a centralized architecture:
+- `src/screens/`: Contains all application views. Screens are named using a mix of English and Albanian terminology (e.g., `JobPostScreen.tsx` vs `BrowseUstajteScreen.tsx`).
+- `src/lib/`: Houses the core business logic, including AI-driven services (Groq API), geocoding, and push notifications.
+- `src/components/`: Shared UI components for consistent rendering across screens.
+- `App.tsx`: The main orchestrator for navigation (`react-navigation`) and global theme settings (Dark Theme).
+- `admin-dashboard/`: A separate static site for administrative tasks.
+
+## Build, Test, and Development Commands
+Use the following commands for development and building:
+- `npm start`: Starts the Expo development server.
+- `npm run android`: Launches the application on an Android emulator or device.
+- `npm run build:android`: Generates a release APK in `android/app/build/outputs/apk/release/`.
+- `npm run clean:android`: Cleans the Android build folder.
+- `npm run prebuild`: Synchronizes native Android files with Expo configurations.
+
+## Coding Style & Naming Conventions
+- **TypeScript**: Strict mode is enforced. Use explicit types wherever possible.
+- **Path Aliases**: Use `@/*` to refer to the `src/` directory (e.g., `import { pb } from '@/lib/pocketbase'`).
+- **Naming**: Business domain entities use Albanian terms: `ustai` (craftsman/worker), `klient` (client), `punë` (job). Screen and component filenames should follow PascalCase.
+- **Theme**: The application is strictly Dark Mode. Avoid hardcoding colors; refer to the styles in `App.tsx` or screen-specific style objects.
+
+## Core Services & Integration
+- **PocketBase**: Used for Authentication, Database, and Real-time features. The client is initialized in `src/lib/pocketbase.ts`.
+- **AI Services**: Groq AI (Llama 3.2 Vision) is used for job analysis and matching logic.
+- **Payments**: Stripe is used for payment processing. Ensure `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` is set in the environment.
+
+## Commit & Pull Request Guidelines
+- Follow clear, descriptive commit messages. Maintain a clean log starting with feature-based or fix-based titles.

@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+
+# Build artifacts
+*.apk
+*.aab
+*.keystore
+
+# Environment variables
+.env
+
+# Ignore agent internal skills and artifacts (not project files)
+.agents/
+.artifacts/
+
+# Android specific (keep the source, ignore build outputs)
+android/app/build/
+android/.gradle/
+android/build/
+android/captures/
+android/.navigation/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
