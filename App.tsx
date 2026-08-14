@@ -58,6 +58,7 @@ import AIPreventivScreen from './src/screens/AIPreventivScreen';
 import AIScanScreen from './src/screens/AIScanScreen';
 import AIBathroomPlannerScreen from './src/screens/AIBathroomPlannerScreen';
 import AIRoomPlannerScreen from './src/screens/AIRoomPlannerScreen';
+import AIMatjaScreen from './src/screens/AIMatjaScreen';
 
 import { regjistroPerNjoftime } from './src/lib/pushNotifications';
 import { pb } from './src/lib/pocketbase';
@@ -177,6 +178,7 @@ export default function App() {
             <Stack.Screen name="AISkanim" component={AIScanScreen} />
             <Stack.Screen name="AIPlanifikuesTualeti" component={AIBathroomPlannerScreen} />
             <Stack.Screen name="AIPlanifikuesHapesire" component={AIRoomPlannerScreen} />
+            <Stack.Screen name="AIMatja" component={AIMatjaScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </StripeProvider>

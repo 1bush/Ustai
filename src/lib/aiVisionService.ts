@@ -38,6 +38,16 @@ export interface AIRoomPlan {
   ngjyrat_rekomanduara: string[];
 }
 
+/** Rezultati i matjes se planimetrise */
+export interface AIRoomMeasurement {
+  lloji_hapesires: string;
+  dimensionet_m: { muri: string; gjatesia_m: number }[];
+  siperfaqja_m2: number;
+  perimetri_m: number;
+  forma: string;
+  zgjedhje_murale: string;
+}
+
 /** Thirrje e perbashket: Groq (nese ka API key) -> Ollama (fallback) */
 async function aiChat(prompt: string, imageBase64?: string): Promise<any> {
   if (GROQ_API_KEY && !GROQ_API_KEY.includes('VENDOS')) {
@@ -141,6 +151,29 @@ export class AIVisionService {
       return await aiChat(prompt, base64Image);
     } catch (e) {
       console.error('Scan Error:', e);
+      return null;
+    }
+  }
+
+  /**
+   * Mat dhome/banjo nga nje foto e planimetrise dhe llogarit m2.
+   @param base64Image - Foto e planimetrise
+   @param shtoDimensionReferimi - Nje dimension i njohur per shkallezim (psh. "muri i gjate 5m")
+   */
+  static async matHapesiren(base64Image: string, shtoDimensionReferimi: string = ''): Promise<AIRoomMeasurement | null> {
+    try {
+      const prompt = 'Analizo kete foto te nje planimetrie (panimetri) ndertimi.\n' +
+        'Detyra:\n' +
+        '1. Identifiko llojin e hapesires (dhome, banjo, kuzhine, sallon, etj).\n' +
+        '2. Lexo cdo mur dhe gjatesine e tij ne metra.\n' +
+        '3. Llogarisiperfaqjen totale ne m2 dhe perimetrin ne metra.\n' +
+        '4. Percakto formen e hapesires (drejtekendshe, ne forme L, jo rregullte).\n' +
+        '5. Sugjero zgjedhje murale (boje, letra, pllaka, etj) bazuar ne llojin e hapesires.\n' +
+        (shtoDimensionReferimi ? 'Keto dimensione jane per referim: "' + shtoDimensionReferimi + '". Perdori per te shkalluar matjet.\n' : '') +
+        'Kthe JSON: { "lloji_hapesires": "Lloji", "dimensionet_m": [{"muri": "Muri A", "gjatesia_m": 0}], "siperfaqja_m2": 0, "perimetri_m": 0, "forma": "drejtekendshe", "zgjedhje_murale": "sugjerimi" }';
+      return await aiChat(prompt, base64Image);
+    } catch (e) {
+      console.error('Measure Error:', e);
       return null;
     }
   }
