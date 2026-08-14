@@ -1,5 +1,5 @@
-﻿// Ollama - AI lokal (pa API key)
-// Shkarko: https://ollama.com, modelo: llama3.2-vision:11b
+﻿// Groq AI (cloud) + Ollama (lokal) - fallback automatik
+const GROQ_API_KEY = process.env.EXPO_PUBLIC_GROQ_API_KEY;
 const OLLAMA_URL = process.env.EXPO_PUBLIC_OLLAMA_URL || 'http://localhost:11434';
 const OLLAMA_MODEL = process.env.EXPO_PUBLIC_OLLAMA_MODEL || 'llama3.2-vision:11b';
 
@@ -31,85 +31,116 @@ export interface AIBathroomDesign {
 }
 
 export interface AIRoomPlan {
-  lloji_dhomes: "kuzhine" | "dhome_gjumi" | "tualet" | "kopsht";
+  lloji_dhomes: 'kuzhine' | 'dhome_gjumi' | 'tualet' | 'kopsht';
   dimensionet: { gjeresi: number; gjatesi: number };
   vendosja_elementeve: AIFixture[];
   stili_sugjeruar: string;
   ngjyrat_rekomanduara: string[];
 }
 
-/** Thirrje e perbashket per Ollama me JSON output */
-async function ollamaChat(prompt: string, imageBase64?: string): Promise<any> {
+/** Thirrje e perbashket: Groq (nese ka API key) -> Ollama (fallback) */
+async function aiChat(prompt: string, imageBase64?: string): Promise<any> {
+  if (GROQ_API_KEY && !GROQ_API_KEY.includes('VENDOS')) {
+    try {
+      const body: any = {
+        model: 'llama-3.2-11b-vision-preview',
+        messages: [{
+          role: 'user',
+          content: [{ type: 'text', text: prompt }]
+        }],
+        response_format: { type: 'json_object' },
+        temperature: 0.1,
+      };
+      if (imageBase64) {
+        body.messages[0].content.push({
+          type: 'image_url',
+          image_url: { url: 'data:image/jpeg;base64,' + imageBase64 }
+        });
+      }
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_API_KEY },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (data.choices && data.choices[0]) {
+        return JSON.parse(data.choices[0].message.content);
+      }
+    } catch (e) {
+      console.warn('Groq deshtoi, kaloj ne Ollama:', e);
+    }
+  }
+
+  // Fallback: Ollama lokal
   const body: any = {
     model: OLLAMA_MODEL,
-    prompt: prompt + "\nPergjigju VETEM me JSON, pa tekst tjeter.",
+    prompt: prompt + '\nPergjigju VETEM me JSON, pa tekst tjeter.',
     stream: false,
-    format: "json",
+    format: 'json',
   };
-  if (imageBase64) {
-    body.images = [imageBase64];
-  }
-  const res = await fetch(OLLAMA_URL + "/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+  if (imageBase64) body.images = [imageBase64];
+
+  const res = await fetch(OLLAMA_URL + '/api/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
   const data = await res.json();
-  if (!data.response) throw new Error("Ollama nuk u pergjigj");
+  if (!data.response) throw new Error('Asnje AI nuk u pergjigj');
   return JSON.parse(data.response);
 }
 
 export class AIVisionService {
-  static async planifikoHapesiren(base64Image: string, lloji: "kuzhine" | "dhome_gjumi" | "tualet" | "kopsht"): Promise<AIRoomPlan | null> {
+  static async planifikoHapesiren(base64Image: string, lloji: 'kuzhine' | 'dhome_gjumi' | 'tualet' | 'kopsht'): Promise<AIRoomPlan | null> {
     try {
-      const prompt = "Analizo kete foto te nje hapesire per: " + lloji + ".\n" +
-        "1. Percakto dimensionet e peraferta (gjeresi x gjatesi ne metra).\n" +
-        "2. Sugjero vendosjen ideale per elementet kryesore.\n" +
-        "3. Percakto nje stil modern dhe 3 ngjyra kryesore.\n" +
-        "Kthe JSON: { \"lloji_dhomes\": \"" + lloji + "\", \"dimensionet\": {\"gjeresi\": 0, \"gjatesi\": 0}, \"vendosja_elementeve\": [{\"emri\": \"Emri\", \"pozicioni_sugjeruar\": \"Pozicioni\", \"arsyeja\": \"Arsyeja\"}], \"stili_sugjeruar\": \"Stili\", \"ngjyrat_rekomanduara\": [\"#hex1\", \"#hex2\", \"#hex3\"] }";
-      return await ollamaChat(prompt, base64Image);
+      const prompt = 'Analizo kete foto te nje hapesire per: ' + lloji + '.\n' +
+        '1. Percakto dimensionet e peraferta (gjeresi x gjatesi ne metra).\n' +
+        '2. Sugjero vendosjen ideale per elementet kryesore.\n' +
+        '3. Percakto nje stil modern dhe 3 ngjyra kryesore.\n' +
+        'Kthe JSON: { "lloji_dhomes": "' + lloji + '", "dimensionet": {"gjeresi": 0, "gjatesi": 0}, "vendosja_elementeve": [{"emri": "Emri", "pozicioni_sugjeruar": "Pozicioni", "arsyeja": "Arsyeja"}], "stili_sugjeruar": "Stili", "ngjyrat_rekomanduara": ["#hex1", "#hex2", "#hex3"] }';
+      return await aiChat(prompt, base64Image);
     } catch (e) {
-      console.error("Room Planner Error:", e);
+      console.error('Room Planner Error:', e);
       return null;
     }
   }
 
   static async planifikoTualetin(base64Image: string): Promise<AIBathroomDesign | null> {
     try {
-      const prompt = "Analizo kete foto te nje hapesire tualeti.\n" +
-        "1. Percakto dimensionet e peraferta (gjeresi x gjatesi ne metra).\n" +
-        "2. Sugjero vendosjen ideale per: Lavamanin, WC, Dushen/Vasken.\n" +
-        "3. Percakto nje stil modern.\n" +
-        "Kthe JSON: { \"lloji\": \"tualet\", \"dimensionet\": {\"gjeresi\": 0, \"gjatesi\": 0}, \"vendosja_elementeve\": [{\"emri\": \"Emri\", \"pozicioni_sugjeruar\": \"Pozicioni\", \"arsyeja\": \"Arsyeja\"}], \"stili_sugjeruar\": \"Stili\" }";
-      return await ollamaChat(prompt, base64Image);
+      const prompt = 'Analizo kete foto te nje hapesire tualeti.\n' +
+        '1. Percakto dimensionet e peraferta (gjeresi x gjatesi ne metra).\n' +
+        '2. Sugjero vendosjen ideale per: Lavamanin, WC, Dushen/Vasken.\n' +
+        '3. Percakto nje stil modern.\n' +
+        'Kthe JSON: { "lloji": "tualet", "dimensionet": {"gjeresi": 0, "gjatesi": 0}, "vendosja_elementeve": [{"emri": "Emri", "pozicioni_sugjeruar": "Pozicioni", "arsyeja": "Arsyeja"}], "stili_sugjeruar": "Stili" }';
+      return await aiChat(prompt, base64Image);
     } catch (e) {
-      console.error("Bathroom Planner Error:", e);
+      console.error('Bathroom Planner Error:', e);
       return null;
     }
   }
 
   static async gjeneroPreventiv(base64Image: string, pershkrimi: string): Promise<AIEstimate | null> {
     try {
-      const prompt = "Analizo kete foto te nje pune ndertimi dhe pershkrimin: \"" + pershkrimi + "\".\n" +
-        "Gjenero nje preventiv te detajuar ne JSON.\n" +
-        "Kthe JSON: { \"materialet\": [{\"emri\": \"Emri\", \"sasia\": \"Sasia\", \"kosto_afersisht\": \"Vlera ne Lek\"}], \"puna_dore\": \"Vlera e punes\", \"total_afersisht\": \"Shuma totale\", \"kohezgjatja\": \"Sa dite pune\" }";
-      return await ollamaChat(prompt, base64Image);
+      const prompt = 'Analizo kete foto te nje pune ndertimi dhe pershkrimin: "' + pershkrimi + '".\n' +
+        'Gjenero nje preventiv te detajuar ne JSON.\n' +
+        'Kthe JSON: { "materialet": [{"emri": "Emri", "sasia": "Sasia", "kosto_afersisht": "Vlera ne Lek"}], "puna_dore": "Vlera e punes", "total_afersisht": "Shuma totale", "kohezgjatja": "Sa dite pune" }';
+      return await aiChat(prompt, base64Image);
     } catch (e) {
-      console.error("Preventiv Error:", e);
+      console.error('Preventiv Error:', e);
       return null;
     }
   }
 
   static async skanoDhomen(base64Image: string): Promise<AIRoomScan | null> {
     try {
-      const prompt = "Analizo kete foto dhome.\n" +
-        "1. Llojin e dhomes (Banjo, Sallon, etj).\n" +
-        "2. Dimensionet e peraferta (metra).\n" +
-        "3. 3 Sygjerime te modeleve te fundit te dizajnit.\n" +
-        "Kthe JSON: { \"lloji\": \"Lloji\", \"dimensionet_afersisht\": {\"gjeresi\": 0, \"gjatesi\": 0, \"lartesi\": 2.8}, \"sygjerime_dizajni\": [\"Sygjerim 1\", \"Sygjerim 2\", \"Sygjerim 3\"], \"planimetria_svg_data\": \"pika per vizatim\" }";
-      return await ollamaChat(prompt, base64Image);
+      const prompt = 'Analizo kete foto dhome.\n' +
+        '1. Llojin e dhomes (Banjo, Sallon, etj).\n' +
+        '2. Dimensionet e peraferta (metra).\n' +
+        '3. 3 Sygjerime te modeleve te fundit te dizajnit.\n' +
+        'Kthe JSON: { "lloji": "Lloji", "dimensionet_afersisht": {"gjeresi": 0, "gjatesi": 0, "lartesi": 2.8}, "sygjerime_dizajni": ["Sygjerim 1", "Sygjerim 2", "Sygjerim 3"], "planimetria_svg_data": "pika per vizatim" }';
+      return await aiChat(prompt, base64Image);
     } catch (e) {
-      console.error("Scan Error:", e);
+      console.error('Scan Error:', e);
       return null;
     }
   }
