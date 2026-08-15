@@ -95,4 +95,34 @@ const styles = StyleSheet.create({
   input: { color: NGJYRAT.teksti, backgroundColor: NGJYRAT.sfondiKarte, flex: 1, borderWidth: 1, borderColor: NGJYRAT.kufiri, borderRadius: 20, paddingHorizontal: 16, marginRight: 8 },
   dergoBtn: { backgroundColor: NGJYRAT.primare, paddingHorizontal: 18, justifyContent: 'center', borderRadius: 20 },
   shenimi: { textAlign: 'center', color: NGJYRAT.tekstiZbehur, fontSize: 12, padding: 8 },
+  // In-app messaging enhancements from GitHub repo
+  messageBubble: {
+    padding: 14,
+    borderRadius: 18,
+    maxWidth: '75%',
+    marginBottom: 12,
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  timestampText: {
+    fontSize: 10,
+    color: '#666',
+    marginTop: 2,
+    marginBottom: 2,
+  },
+  typingIndicator: {
+    padding: 8,
+    color: '#666',
+    fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  onlineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#4CAF50',
+    position: 'absolute',
+    right: 2,
+    top: 2,
+  },
 });
