@@ -1,13 +1,15 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Image, AppState } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Image, AppState, AppStateStatus } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NGJYRAT } from '../theme/colors';
 import { normalizoTelefonin } from '../lib/phone';
 import { pb } from '../lib/pocketbase';
 import { checkRateLimit, resetRateLimit, getRateLimitState } from '../lib/rateLimit';
+import { validatePhone } from '@/lib/validators';
 
 export default function LoginScreen({ navigation }: any) {
   const [tel, setTel] = useState('');
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutTime, setLockoutTime] = useState(0);
@@ -15,7 +17,7 @@ export default function LoginScreen({ navigation }: any) {
   const [countdown, setCountdown] = useState(0);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
-  const [lastAppState, setLastAppState] = useState(null);
+    const [lastAppState, setLastAppState] = useState<AppStateStatus | null>(null);
 
   useEffect(() => {
     initRateLimit();
@@ -53,7 +55,7 @@ export default function LoginScreen({ navigation }: any) {
     if (isLocked || isGoogleLoading) return;
     setIsGoogleLoading(true);
     try {
-      const authData = await pb.collection('users').authWithOAuth(
+            const authData = await (pb.collection('users') as any).authWithOAuth(
         'google',
         {
           redirect: false,
@@ -81,16 +83,17 @@ export default function LoginScreen({ navigation }: any) {
     } catch (error: any) {
       console.error('Apple login error:', error);
       Alert.alert('Gabim', error.message || 'Ka ndodhur një shifte të pavlefshme.');
-      setIsAppleLoading(false);
+            setIsAppleLoading(false);
     }
   };
 
   const vazhdoMeTelefon = async () => {
     const telPastruar = normalizoTelefonin(tel);
-    if (!telPastruar) {
-      Alert.alert('Gabim', 'Ju lutem jepni nje numër telefoni të vlefshëm shqiptar (p.sh. 06X XXX XXXX).');
+    if (!telPastruar || !validatePhone(tel)) {
+      setPhoneError('Ju lutem jepni një numër telefoni të vlefshëm shqiptar (p.sh. 06X XXX XXX).');
       return;
     }
+    setPhoneError(null);
 
     // Check rate limit before proceeding
     const rateLimitState = await checkRateLimit(telPastruar, pb);
@@ -187,18 +190,19 @@ export default function LoginScreen({ navigation }: any) {
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Numri i telefonit</Text>
             <TextInput
-              style={styles.input}
+                            style={[styles.input, phoneError ? styles.inputError : undefined]}
               placeholder="06X XXX XXXX"
               placeholderTextColor={NGJYRAT.tekstiShumeZbehur}
               keyboardType="phone-pad"
               value={tel}
-              onChangeText={setTel}
+                            onChangeText={(t) => { setTel(t); setPhoneError(null); }}
             />
+            {phoneError && <Text style={styles.errorText}>{phoneError}</Text>}
           </View>
 
           <TouchableOpacity style={styles.btn} onPress={vazhdoMeTelefon} disabled={isLocked || isLoading}>
-            <Text style={styles.btnText}>{isLoading ? <ActivityIndicator color="#fff" size="small" /> : 'Vazhdo'</Text>
-            }</TouchableOpacity>
+                        <Text style={styles.btnText}>{isLoading ? <ActivityIndicator color="#fff" size="small" /> : 'Vazhdo'}</Text>
+            </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.linkBtn}
@@ -220,7 +224,9 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 16, color: NGJYRAT.tekstiZbehur, marginBottom: 32 },
   inputContainer: { marginBottom: 24 },
   label: { color: '#fff', marginBottom: 8, fontWeight: '600' },
-  input: { backgroundColor: NGJYRAT.sfondiKarte, color: '#fff', padding: 16, borderRadius: 12, fontSize: 18 },
+    input: { backgroundColor: NGJYRAT.sfondiKarte, color: '#fff', padding: 16, borderRadius: 12, fontSize: 18 },
+  inputError: { borderColor: NGJYRAT.gabim, borderWidth: 1 },
+  errorText: { color: NGJYRAT.gabim, fontSize: 12, marginTop: 6, marginLeft: 4 },
   btn: { 
     backgroundColor: NGJYRAT.primare, 
     padding: 18, 
