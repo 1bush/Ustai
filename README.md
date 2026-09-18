@@ -15,18 +15,18 @@ Aplikacion mobil React Native me Expo që lidh ustallarët me klientët në treg
 - **React Native** 0.74.5 me Expo 57
 - **TypeScript** me strict mode
 - **Navigation**: React Navigation (Native Stack)
-- **Backend**: PocketBase (Auth, Database, Real-time)
+- **Backend**: PocketBase — HEQUR (mock lokal në `src/lib/pocketbase.ts`, pa rrjet)
 - **Payments**: Stripe React Native
 - **Maps**: React Native Maps + Mapbox Geocoding
 - **Notifications**: Expo Notifications
-- **AI Services**: Groq API (Llama 3.2 Vision)
+- **AI Services**: AI lokale offline (`src/lib/localAI.ts`) — pa server, pa API key, pa internet
 
 ### Admin Dashboard
 - HTML/JavaScript statik me PocketBase SDK
 - Panel admin për menaxhim
 
 ## 📁 Struktura e Projektit
-ustai-app claude/ ├── src/ │ ├── screens/ # Të gjitha ekrane e aplikacionit │ ├── components/ # Komponente të përdorura │ ├── lib/ # Shërbime thelbësore │ │ ├── pocketbase.ts # Konfigurimi PocketBase │ │ ├── aiVisionService.ts # AI për analiza vizuale │ │ ├── aiMatching.ts # AI për përputhje ustallarësh │ │ ├── geocoding.ts # Shërbimi Mapbox │ │ ├── pushNotifications.ts # Njoftime push │ │ └── seedData.ts # Të dhëna fillestare │ └── theme/ # Tema dhe ngjyrat ├── admin-dashboard/ # Panel admin (HTML statik) ├── App.tsx # Hyrja kryesore dhe navigimi ├── app.json # Konfigurimi Expo ├── package.json # Varësitë └── tsconfig.json # Konfigurimi TypeScript
+ustai-app claude/ ├── src/ │ ├── screens/ # Të gjitha ekrane e aplikacionit │ ├── components/ # Komponente të përdorura │ ├── lib/ # Shërbime thelbësore │ │ ├── pocketbase.ts # Mock lokal (serveri u hoq) │ │ ├── localAI.ts # AI lokale offline (Ollama u hoq) │ │ ├── aiVisionService.ts # AI për analiza vizuale │ │ ├── aiMatching.ts # AI për përputhje ustallarësh │ │ ├── geocoding.ts # Shërbimi Mapbox │ │ ├── pushNotifications.ts # Njoftime push │ │ └── seedData.ts # Të dhëna fillestare │ └── theme/ # Tema dhe ngjyrat ├── admin-dashboard/ # Panel admin (HTML statik) ├── App.tsx # Hyrja kryesore dhe navigimi ├── app.json # Konfigurimi Expo ├── package.json # Varësitë └── tsconfig.json # Konfigurimi TypeScript
 
 
 
@@ -121,8 +121,8 @@ RatingScreen: Vlerësimi
 InstantBookScreen: Rezervim i menjëhershëm
 MaintenancePlansScreen: Planet e mirëmbajtjes
 🧠 Shërbimet AI
-Groq API Integration
-Projekti përdor Groq API (Llama 3.2 Vision) për:
+AI Lokale / Offline Integration
+Ollama u hoq nga projekti. AI-ja ofrohet nga src/lib/localAI.ts, që kthen te dhena demo deterministe pa asnje thirrje rrjeti. Projekti testohet pa server, pa internet dhe pa API key.
 
 AI Vision Service (src/lib/aiVisionService.ts)
 Analizë foto për preventiv
@@ -213,18 +213,17 @@ Konfiguroni app.json me versionin e duhur
 Nisni npm run build:android
 APK gjendet në android/app/build/outputs/apk/release/
 PocketBase Deploy
-Host PocketBase në VPS ose PocketBase Cloud
-Përditësoni EXPO_PUBLIC_POCKETBASE_URL në .env
+Serveri PocketBase është hequr — src/lib/pocketbase.ts është mock lokal (pa rrjet).
+Për ta rikthyer serverin real: Copy-Item src/lib/pocketbase.ts.REAL.BAK src/lib/pocketbase.ts -Force
 🐛 Debugim
 Për probleme me PocketBase:
 
-Kontrolloni URL-në në .env
-Verifikoni që PocketBase server është i nisur
-Kontrolloni logat e PocketBase
+Serveri është hequr; src/lib/pocketbase.ts është mock lokal që kthen të dhëna boshe.
+Nëse një ekran pritej të shfaqte të dhëna reale, rikthe serverin me skedarin .REAL.BAK.
 Për probleme me AI:
 
-Verifikoni EXPO_PUBLIC_GROQ_API_KEY
-Kontrolloni kuotën e Groq API
+AI-ja është lokale (src/lib/localAI.ts) — nuk ka server për të kontrolluar.
+Kontrollo logcat për linjën "[localAI]" për të verifikuar që thirrja u trajtua lokalisht.
 📞 Kontakt
 Për pyetje ose kontribute, kontaktoni me ekipin e zhvillimit.
 

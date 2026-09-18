@@ -21,7 +21,7 @@ export default function FreeMap({ region, onPress, children, style }: FreeMapPro
   return (
     <View style={style || styles.container}>
       <MapView
-        style={StyleSheet.absoluteFillObject}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as any}
         // Në Android duhet 'none' për të hequr grid-in gri të Google Maps kur s'kemi API Key
         mapType={Platform.OS === 'android' ? "none" : "standard"}
         initialRegion={{

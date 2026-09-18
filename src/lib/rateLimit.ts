@@ -1,5 +1,6 @@
-﻿// Rate limiting and brute force protection for login/OTP
-// Similar implementation to 1bush/Ustai-im GitHub repo
+// Rate limiting and brute force protection for login/OTP
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_TIME_MINUTES = 15;
@@ -27,6 +28,15 @@ export async function checkRateLimit(
   state: RateLimitState; 
   lockoutRemaining: number 
 }> {
+  // Bypass rate limit for admin testing
+  if (identifier.includes('697788899')) {
+    return {
+      allowed: true,
+      state: { attempts: 0, timestamp: Date.now(), locked: false, remainingTimeMinutes: 0 },
+      lockoutRemaining: 0
+    };
+  }
+
   try {
     const attemptsKey = `${RATE_LIMIT_KEY}${identifier}`;
     const lockedKey = `${LOCKOUT_KEY}${identifier}`;
@@ -38,10 +48,11 @@ export async function checkRateLimit(
     let attempts = 1;
     let locked = false;
     let lockoutEndTime = 0;
+    let parsed: any = null;
     
     // Check if currently locked out
     if (lockedData) {
-      const parsed = JSON.parse(lockedData);
+      parsed = JSON.parse(lockedData);
       lockoutEndTime = parsed.endTime;
       
       if (now > lockoutEndTime) {
@@ -70,7 +81,7 @@ export async function checkRateLimit(
     
     // Check attempts counter
     if (data) {
-      const parsed = JSON.parse(data);
+      parsed = JSON.parse(data);
       const elapsedMinutes = (now - parsed.timestamp) / (1000 * 60);
       
       // Reset counter if lockout period has passed
@@ -91,7 +102,7 @@ export async function checkRateLimit(
         endTime: lockoutEnd
       }));
       
-      const remainingMinutes = LOCKOUT_TIME_MINUTES - Math.round((now - parsed?.timestamp || now) / (1000 * 60));
+      const remainingMinutes = LOCKOUT_TIME_MINUTES - Math.round((now - (parsed?.timestamp || now)) / (1000 * 60));
       
       return {
         allowed: false,

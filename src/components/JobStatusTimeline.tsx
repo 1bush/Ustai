@@ -27,7 +27,7 @@ export default function JobStatusTimeline({ jobId, leJoUstai = false }: Props) {
       });
       const timelineData = res.items;
       const harta: Record<string, any> = {};
-      (timelineData ?? []).forEach((e) => (harta[e.eventi] = e));
+      (timelineData ?? []).forEach((e: any) => (harta[e.eventi] = e));
       setNgjarjet(harta);
 
       const jobData = await pb.collection('jobs').getOne(jobId);

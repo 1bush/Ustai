@@ -25,7 +25,7 @@ export default function JobBidsScreen({ route, navigation }: any) {
 
     ngarkoOfertat();
 
-    pb.collection('bids').subscribe('*', (e) => {
+    pb.collection('bids').subscribe('*', (e: any) => {
       if (e.action === 'create' && e.record.job_id === jobId) {
         ngarkoOfertat(); // Riload per te marre edhe expand-in
       }

@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 The project is a React Native mobile application built with Expo, targeting the Albanian market. It follows a centralized architecture:
 - `src/screens/`: Contains all application views. Screens are named using a mix of English and Albanian terminology (e.g., `JobPostScreen.tsx` vs `BrowseUstajteScreen.tsx`).
-- `src/lib/`: Houses the core business logic, including AI-driven services (Groq API), geocoding, and push notifications.
+- `src/lib/`: Houses the core business logic, including AI-driven services (`localAI.ts` — offline, no server), geocoding, and push notifications.
 - `src/components/`: Shared UI components for consistent rendering across screens.
 - `App.tsx`: The main orchestrator for navigation (`react-navigation`) and global theme settings (Dark Theme).
 - `admin-dashboard/`: A separate static site for administrative tasks.
@@ -23,8 +23,8 @@ Use the following commands for development and building:
 - **Theme**: The application is strictly Dark Mode. Avoid hardcoding colors; refer to the styles in `App.tsx` or screen-specific style objects.
 
 ## Core Services & Integration
-- **PocketBase**: Used for Authentication, Database, and Real-time features. The client is initialized in `src/lib/pocketbase.ts`.
-- **AI Services**: Groq AI (Llama 3.2 Vision) is used for job analysis and matching logic.
+- **PocketBase**: REMOVED. `src/lib/pocketbase.ts` is a local mock — it keeps the same surface (`pb`, `pbReady`) but makes **no network calls**. Restore with `Copy-Item src/lib/pocketbase.ts.REAL.BAK src/lib/pocketbase.ts -Force`.
+- **AI Services**: Ollama is REMOVED (no `localhost:11434`, no API keys, no network). `src/lib/localAI.ts` exports `thirrAILokale()` and returns deterministic offline demo data, so every AI screen is testable without any server. Restore Ollama with `Copy-Item src/lib/ollama.ts.REAL.BAK src/lib/ollama.ts -Force`.
 - **Payments**: Stripe is used for payment processing. Ensure `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` is set in the environment.
 
 ## Commit & Pull Request Guidelines

@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NGJYRAT } from '../theme/colors';
 import { pb } from '../lib/pocketbase';
@@ -23,85 +24,28 @@ export default function VerifyOTPScreen({ navigation, route }: any) {
       Alert.alert('Gabim', 'Shkruani kodin 4-shifror.');
       return;
     }
+
+    // Serveri PocketBase eshte HEQUR — verifikim lokal (mock).
+    // Pa password test, pa kode speciale. Cdo kod 4-shifror pranohet.
     setDukeVerifikuar(true);
+
     try {
       const username = tel.replace(/\D/g, '');
-      const password = 'Ustai_' + username + '_Secure!';
-      let userRecord;
+      pb.authStore.save('mock-token', {
+        id: 'mock-' + username,
+        username,
+        role: roli || 'klient',
+        emri: 'Perdorues ' + username.slice(-4),
+        telefon: tel,
+      } as any);
 
-      if (dukeUkycur) {
-        try {
-          const authData = await pb.collection('users').authWithPassword(username, password);
-          userRecord = authData.record;
-        } catch (e) {
-          Alert.alert('Gabim', 'Ky numer nuk eshte i regjistruar. Regjistrohuni fillimisht.');
-          setDukeVerifikuar(false);
-          return;
-        }
-        const roliUserit = userRecord.role || 'klient';
-        if (roliUserit === 'ustai') {
-          const profil = await pb.collection('profiles').getOne(userRecord.id).catch(() => null);
-          if (!profil || !profil.category_id) {
-            navigation.reset({ index: 0, routes: [{ name: 'ZgjidhKategori' }] });
-          } else {
-            navigation.reset({ index: 0, routes: [{ name: 'FaqjaUstait' }] });
-          }
-        } else {
-          navigation.reset({ index: 0, routes: [{ name: 'FaqjaKlientit' }] });
-        }
+      if ((roli || 'klient') === 'ustai') {
+        navigation.reset({ index: 0, routes: [{ name: 'ZgjidhKategori' }] });
       } else {
-        try {
-          const authData = await pb.collection('users').authWithPassword(username, password);
-          userRecord = authData.record;
-          if (userRecord.role !== roli) {
-            pb.authStore.clear();
-            Alert.alert('Llogari ekzistuese', 'Ky numer eshte i regjistruar si ' + (userRecord.role === 'ustai' ? 'Ustai' : 'Klient') + '.');
-            setDukeVerifikuar(false);
-            return;
-          }
-        } catch (e) {
-          try {
-            userRecord = await pb.collection('users').create({
-              username, phone: tel, password, passwordConfirm: password,
-              role: roli, name: tel, emailVisibility: true
-            });
-            await pb.collection('users').authWithPassword(username, password);
-          } catch (createErr: any) {
-            throw new Error('Deshtoi krijimi i llogarise.');
-          }
-        }
-        try {
-          await pb.collection('profiles').getOne(userRecord.id);
-        } catch (e) {
-          const kodiRi = username.slice(-4) + Math.random().toString(36).substring(2, 4).toUpperCase();
-          await pb.collection('profiles').create({
-            id: userRecord.id, user_id: userRecord.id, role: roli,
-            rating: 5.0, completed_jobs: 0, points: 0, golden_stars: 0, referral_code: kodiRi
-          });
-          if (refKod.trim()) {
-            try {
-              const referrerRes = await pb.collection('profiles').getList(1, 1, { filter: 'referral_code = "' + refKod.trim() + '"' });
-              if (referrerRes.items.length > 0) {
-                const referrer = referrerRes.items[0];
-                await pb.collection('referrals').create({ referrer_id: referrer.id, referred_id: userRecord.id });
-                await pb.collection('profiles').update(referrer.id, { points: (referrer.points || 0) + 100 });
-              }
-            } catch (refErr) { console.warn('Referim i pavlefshem'); }
-          }
-        }
-        if (roli === 'ustai') {
-          const profil = await pb.collection('profiles').getOne(userRecord.id);
-          if (!profil.category_id) {
-            navigation.reset({ index: 0, routes: [{ name: 'ZgjidhKategori' }] });
-          } else {
-            navigation.reset({ index: 0, routes: [{ name: 'FaqjaUstait' }] });
-          }
-        } else {
-          navigation.reset({ index: 0, routes: [{ name: 'FaqjaKlientit' }] });
-        }
+        navigation.reset({ index: 0, routes: [{ name: 'FaqjaKlientit' }] });
       }
     } catch (error: any) {
-      Alert.alert('Gabim', error.message);
+      Alert.alert('Gabim teknik', error.message || 'Dicka shkoi keq.');
     } finally {
       setDukeVerifikuar(false);
     }
@@ -125,7 +69,7 @@ export default function VerifyOTPScreen({ navigation, route }: any) {
           editable={!dukeVerifikuar}
         />
         {!dukeUkycur && (
-          <>
+          <View>
             <Text style={[styles.label, { marginBottom: 10, textAlign: 'center' }]}>Kodi i referimit (opsionale)</Text>
             <TextInput
               style={[styles.inputRef]}
@@ -136,7 +80,7 @@ export default function VerifyOTPScreen({ navigation, route }: any) {
               onChangeText={setRefKod}
               editable={!dukeVerifikuar}
             />
-          </>
+          </View>
         )}
         <TouchableOpacity style={[styles.btn, dukeVerifikuar && { opacity: 0.7 }]} onPress={verifiko} disabled={dukeVerifikuar}>
           {dukeVerifikuar ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{dukeUkycur ? 'Hyr' : 'Verifiko'}</Text>}

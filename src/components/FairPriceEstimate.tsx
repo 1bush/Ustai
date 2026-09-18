@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { pb } from '@/lib/pocketbase';
 import { NGJYRAT } from '../theme/colors';
 
-type Props = { categoryId: number | null; m2: string };
+type Props = { categoryId: string | null; m2: string };
 
 // Përdoret brenda JobPostScreen: tregon klientit çmimin mesatar historik
 // për punë të ngjashme, që të mos befasohet nga oferta e para.
@@ -13,7 +13,7 @@ export default function FairPriceEstimate({ categoryId, m2 }: Props) {
   useEffect(() => {
     if (!categoryId) return;
     pb.collection('cmimi_mesatar_kategori').getFirstListItem(`category_id = ${categoryId}`)
-      .then((res) => {
+      .then((res: any) => {
         setVlersimi(res);
       })
       .catch(() => setVlersimi(null));

@@ -2,7 +2,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text, TouchableOpacity, StyleSheet, Image, StatusBar, View } from 'react-native';
+import { Text, TouchableOpacity, StyleSheet, Image, StatusBar, View, Alert } from 'react-native';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
@@ -56,12 +56,13 @@ import MyMaintenanceSubscriptionsScreen from './src/screens/MyMaintenanceSubscri
 // ═══ AI ═══
 import AIPreventivScreen from './src/screens/AIPreventivScreen';
 import AIScanScreen from './src/screens/AIScanScreen';
+import AdminTestScreen from './src/screens/AdminTestScreen';
 import AIBathroomPlannerScreen from './src/screens/AIBathroomPlannerScreen';
 import AIRoomPlannerScreen from './src/screens/AIRoomPlannerScreen';
 import AIMatjaScreen from './src/screens/AIMatjaScreen';
 
 import { regjistroPerNjoftime } from './src/lib/pushNotifications';
-import { pb } from './src/lib/pocketbase';
+import { pb, pbReady } from './src/lib/pocketbase';
 import { seedCategories } from './src/lib/seedData';
 
 const Stack = createNativeStackNavigator();
@@ -73,24 +74,18 @@ const STRIPE_PUBLISHABLE_KEY =
 
 function StartScreen({ navigation }: any) {
   React.useEffect(() => {
+    // Këtë pjesë është E MBYLLUR për testim — nuk refshij sesionin automatikisht
+    /*
     let aktiv = true;
     const ridrejtoSesioni = async () => {
       try {
+        await pbReady;
         if (!pb.authStore.model || !aktiv) return;
-
-        // Në PocketBase, modeli i përdoruesit zakonisht ka rolin direkt
-        // ose mund të bëjmë një fetch të freskët nëse duhet
-        const profil = pb.authStore.model;
-
-        if (!aktiv || !profil) return;
-        navigation.reset({
-          index: 0,
-          routes: [{ name: profil.role === 'ustai' ? 'FaqjaUstait' : 'FaqjaKlientit' }],
-        });
-      } catch {}
+        ...
     };
     ridrejtoSesioni();
     return () => { aktiv = false; };
+    */
   }, [navigation]);
 
   return (
@@ -99,6 +94,20 @@ function StartScreen({ navigation }: any) {
       <Image source={require('./assets/logo.png')} style={styles.logo} resizeMode="contain" />
       <Text style={styles.title}>USTAI-IM</Text>
       <Text style={styles.subtitle}>Gjej ustain e duhur, ose gjej punë</Text>
+
+      {/* HYRJE ADMIN — me 1 buton: logohet si admin (sesion test) + hap panelin */}
+      <TouchableOpacity
+        style={[styles.btn, { backgroundColor: '#4CAF50', marginBottom: 20 }]}
+        onPress={() => {
+          pb.authStore.save('admin-test-token', {
+            id: 'mock-admin', username: 'admin', role: 'admin', emri: 'Admin (Test)',
+          } as any);
+          navigation.navigate('PanelAdminTest');
+        }}
+      >
+        <Text style={styles.btnText}>HYR SI ADMIN (TEST)</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('Regjistrimi', { roli: 'klient' })}>
         <Text style={styles.btnText}>Jam Klient i Ri</Text>
       </TouchableOpacity>
@@ -107,6 +116,16 @@ function StartScreen({ navigation }: any) {
       </TouchableOpacity>
       <TouchableOpacity style={[styles.btn, { backgroundColor: 'transparent', borderWidth: 2, borderColor: NGJYRAT.primare }]} onPress={() => navigation.navigate('Hyrje')}>
         <Text style={[styles.btnText, { color: NGJYRAT.primare }]}>Tashmë kam llogari</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={{ marginTop: 30 }}
+        onPress={() => {
+          pb.authStore.clear();
+          Alert.alert('Sesioni u pastrua', 'Tani mund të provoni të hyni përsëri.');
+        }}
+      >
+        <Text style={{ color: NGJYRAT.gabim, fontWeight: '700' }}>Pastro Sesionin (Reset)</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -117,15 +136,16 @@ export default function App() {
 
   React.useEffect(() => {
     // Restore pb.authStore.onChange logic if needed
-    const unsubscribe = pb.authStore.onChange((token, model) => {
-      if (model) regjistroPerNjoftime();
+    const unsubscribe = pb.authStore.onChange((token: any, model: any) => {
+      // .catch bosh: njoftimet push kërkojnë internet dhe nuk duhet të bllokojnë app-in offline.
+      if (model) regjistroPerNjoftime().catch(() => {});
     });
 
     if (pb.authStore.model) {
-      regjistroPerNjoftime();
+      regjistroPerNjoftime().catch(() => {});
     }
 
-    seedCategories(); // Shto kategoritë e reja
+    // seedCategories(); // E MBYLLUR PËR TESTIM (SERVER CALL)
 
     setIsReady(true);
     return () => unsubscribe();
@@ -140,6 +160,7 @@ export default function App() {
           <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: NGJYRAT.sfondi } }}>
             <Stack.Screen name="Start" component={StartScreen} />
             <Stack.Screen name="Hyrje" component={LoginScreen} />
+            <Stack.Screen name="PanelAdminTest" component={AdminTestScreen} />
             <Stack.Screen name="Regjistrimi" component={RegisterScreen} />
             <Stack.Screen name="VerifikoOTP" component={VerifyOTPScreen} />
             <Stack.Screen name="ZgjidhKategori" component={SelectCategoryScreen} />

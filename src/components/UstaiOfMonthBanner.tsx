@@ -13,7 +13,7 @@ export default function UstaiOfMonthBanner({ ustaiId }: { ustaiId: string }) {
     const muajiStr = fillimiMuajit.toISOString().split('T')[0];
 
     pb.collection('ustai_of_month').getFirstListItem(`muaji = '${muajiStr}'`)
-      .then((res) => {
+      .then((res: any) => {
         setEshteFitues(res?.ustai_id === ustaiId);
       })
       .catch(() => setEshteFitues(false));

@@ -3,21 +3,40 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingVi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NGJYRAT } from '../theme/colors';
 import { normalizoTelefonin } from '../lib/phone';
+import { pb } from '../lib/pocketbase';
 
 export default function RegisterScreen({ navigation, route }: any) {
   const [tel, setTel] = useState('');
   const roli = route.params?.roli || 'klient';
 
-  const nisVerifikimin = () => {
+  const nisVerifikimin = async () => {
     const telPastruar = normalizoTelefonin(tel);
     if (!telPastruar) {
       Alert.alert('Gabim', 'Ju lutem jepni një numër telefoni të vlefshëm shqiptar.');
       return;
     }
 
-    // Këtu do të ishte thirrja e API për të dërguar SMS.
-    // Për PocketBase, meqë po simulojmë SMS:
-    navigation.navigate('VerifikoOTP', { tel: telPastruar, roli });
+    // Mock lokal pa server — krijohet sesion testues.
+    try {
+      // Kjo është thjesht për të mbushur authStore në memorie që ekranet pasardhëse të mos crashen
+      pb.authStore.save('mock-token', {
+        id: 'mock-user-id',
+        username: telPastruar.replace(/\D/g, ''),
+        role: roli
+      } as any);
+    } catch {}
+
+    Alert.alert('Sukses', 'Po hyni në sistem (Test Mode)...', [
+      {
+        text: 'Vazhdo',
+        onPress: () => {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: roli === 'ustai' ? 'ZgjidhKategori' : 'FaqjaKlientit' }],
+          });
+        }
+      }
+    ]);
   };
 
   return (

@@ -1,7 +1,6 @@
-﻿// Groq AI (cloud) + Ollama (lokal) - fallback automatik
-const GROQ_API_KEY = process.env.EXPO_PUBLIC_GROQ_API_KEY;
-const OLLAMA_URL = process.env.EXPO_PUBLIC_OLLAMA_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.EXPO_PUBLIC_OLLAMA_MODEL || 'llama3.2-vision:11b';
+// AI lokale offline — Ollama është hequr nga projekti.
+import { thirrAILokale } from './localAI';
+import { AIFailedError } from './errors';
 
 export interface AIEstimate {
   materialet: { emri: string; sasia: string; kosto_afersisht: string }[];
@@ -48,57 +47,131 @@ export interface AIRoomMeasurement {
   zgjedhje_murale: string;
 }
 
-/** Thirrje e perbashket: Groq (nese ka API key) -> Ollama (fallback) */
-async function aiChat(prompt: string, imageBase64?: string): Promise<any> {
-  if (GROQ_API_KEY && !GROQ_API_KEY.includes('VENDOS')) {
-    try {
-      const body: any = {
-        model: 'llama-3.2-11b-vision-preview',
-        messages: [{
-          role: 'user',
-          content: [{ type: 'text', text: prompt }]
-        }],
-        response_format: { type: 'json_object' },
-        temperature: 0.1,
-      };
-      if (imageBase64) {
-        body.messages[0].content.push({
-          type: 'image_url',
-          image_url: { url: 'data:image/jpeg;base64,' + imageBase64 }
-        });
-      }
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_API_KEY },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (data.choices && data.choices[0]) {
-        return JSON.parse(data.choices[0].message.content);
-      }
-    } catch (e) {
-      console.warn('Groq deshtoi, kaloj ne Ollama:', e);
-    }
+/** Thirrje e AI lokale (offline); kthen objekt të përvjelur ose hedh AIFailedError. */
+async function aiChat(prompt: string, imageBase64?: string): Promise<unknown> {
+  try {
+    return await thirrAILokale(prompt, imageBase64);
+  } catch (e) {
+    // Në vend që të hidhet një mesazh i papërpunuar, hidhet një gabim i tipizuar.
+    throw new AIFailedError(undefined, e);
   }
-
-  // Fallback: Ollama lokal
-  const body: any = {
-    model: OLLAMA_MODEL,
-    prompt: prompt + '\nPergjigju VETEM me JSON, pa tekst tjeter.',
-    stream: false,
-    format: 'json',
-  };
-  if (imageBase64) body.images = [imageBase64];
-
-  const res = await fetch(OLLAMA_URL + '/api/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!data.response) throw new Error('Asnje AI nuk u pergjigj');
-  return JSON.parse(data.response);
 }
+
+/* ──────────────────────────────────────────────────────────────
+ * Ndihmës validimi.
+ * Përgjigja e modelit AI është "external input" — duhet validuar
+ * përpara përdorimit (sipas `react-native-patterns`). Këto funksione
+ * kthejnë një rezultat të sigurt të tipizuar; forma e gabuar filtrohet.
+ * ────────────────────────────────────────────────────────────── */
+function isObj(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function janNr(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function janTekst(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+function siListeTekstesh(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter(janTekst) : [];
+}
+
+function siListeFiksuesish(value: unknown): AIFixture[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(isObj)
+    .map((v) => ({
+      emri: janTekst(v['emri']) ? v['emri'] : '',
+      pozicioni_sugjeruar: janTekst(v['pozicioni_sugjeruar']) ? v['pozicioni_sugjeruar'] : '',
+      arsyeja: janTekst(v['arsyeja']) ? v['arsyeja'] : '',
+    }))
+    .filter((f) => f.emri !== '');
+}
+
+function validoPlan(paras: unknown): AIRoomPlan | null {
+  if (!isObj(paras)) return null;
+  const d = paras['dimensionet'];
+  if (!isObj(d) || !janNr(d['gjeresi']) || !janNr(d['gjatesi'])) return null;
+  return {
+    lloji_dhomes: janTekst(paras['lloji_dhomes'])
+      ? (paras['lloji_dhomes'] as AIRoomPlan['lloji_dhomes'])
+      : 'dhome_gjumi',
+    dimensionet: { gjeresi: d['gjeresi'], gjatesi: d['gjatesi'] },
+    vendosja_elementeve: siListeFiksuesish(paras['vendosja_elementeve']),
+    stili_sugjeruar: janTekst(paras['stili_sugjeruar']) ? paras['stili_sugjeruar'] : '',
+    ngjyrat_rekomanduara: siListeTekstesh(paras['ngjyrat_rekomanduara']),
+  };
+}
+
+function validoTualet(paras: unknown): AIBathroomDesign | null {
+  if (!isObj(paras)) return null;
+  const d = paras['dimensionet'];
+  if (!isObj(d) || !janNr(d['gjeresi']) || !janNr(d['gjatesi'])) return null;
+  return {
+    lloji: janTekst(paras['lloji']) ? paras['lloji'] : 'tualet',
+    dimensionet: { gjeresi: d['gjeresi'], gjatesi: d['gjatesi'] },
+    vendosja_elementeve: siListeFiksuesish(paras['vendosja_elementeve']),
+    stili_sugjeruar: janTekst(paras['stili_sugjeruar']) ? paras['stili_sugjeruar'] : '',
+  };
+}
+
+function validoPreventiv(paras: unknown): AIEstimate | null {
+  if (!isObj(paras) || !Array.isArray(paras['materialet'])) return null;
+  return {
+    materialet: paras['materialet']
+      .filter(isObj)
+      .map((m) => ({
+        emri: janTekst(m['emri']) ? m['emri'] : '',
+        sasia: janTekst(m['sasia']) ? m['sasia'] : '',
+        kosto_afersisht: janTekst(m['kosto_afersisht']) ? m['kosto_afersisht'] : '',
+      }))
+      .filter((m) => m.emri !== ''),
+    puna_dore: janTekst(paras['puna_dore']) ? paras['puna_dore'] : '',
+    total_afersisht: janTekst(paras['total_afersisht']) ? paras['total_afersisht'] : '',
+    kohezgjatja: janTekst(paras['kohezgjatja']) ? paras['kohezgjatja'] : '',
+  };
+}
+
+function validoSkanim(paras: unknown): AIRoomScan | null {
+  if (!isObj(paras)) return null;
+  const d = paras['dimensionet_afersisht'];
+  return {
+    lloji: janTekst(paras['lloji']) ? paras['lloji'] : '',
+    dimensionet_afersisht: isObj(d)
+      ? {
+          gjeresi: janNr(d['gjeresi']) ? d['gjeresi'] : 0,
+          gjatesi: janNr(d['gjatesi']) ? d['gjatesi'] : 0,
+          lartesi: janNr(d['lartesi']) ? d['lartesi'] : 2.8,
+        }
+      : { gjeresi: 0, gjatesi: 0, lartesi: 2.8 },
+    sygjerime_dizajni: siListeTekstesh(paras['sygjerime_dizajni']),
+    planimetria_svg_data: janTekst(paras['planimetria_svg_data']) ? paras['planimetria_svg_data'] : '',
+  };
+}
+
+function validoMatje(paras: unknown): AIRoomMeasurement | null {
+  if (!isObj(paras)) return null;
+  return {
+    lloji_hapesires: janTekst(paras['lloji_hapesires']) ? paras['lloji_hapesires'] : '',
+    dimensionet_m: Array.isArray(paras['dimensionet_m'])
+      ? paras['dimensionet_m']
+          .filter(isObj)
+          .map((m) => ({
+            muri: janTekst(m['muri']) ? m['muri'] : '',
+            gjatesia_m: janNr(m['gjatesia_m']) ? m['gjatesia_m'] : 0,
+          }))
+          .filter((m) => m.muri !== '')
+      : [],
+    siperfaqja_m2: janNr(paras['siperfaqja_m2']) ? paras['siperfaqja_m2'] : 0,
+    perimetri_m: janNr(paras['perimetri_m']) ? paras['perimetri_m'] : 0,
+    forma: janTekst(paras['forma']) ? paras['forma'] : '',
+    zgjedhje_murale: janTekst(paras['zgjedhje_murale']) ? paras['zgjedhje_murale'] : '',
+  };
+}
+
 
 export class AIVisionService {
   static async planifikoHapesiren(base64Image: string, lloji: 'kuzhine' | 'dhome_gjumi' | 'tualet' | 'kopsht'): Promise<AIRoomPlan | null> {
@@ -108,7 +181,7 @@ export class AIVisionService {
         '2. Sugjero vendosjen ideale per elementet kryesore.\n' +
         '3. Percakto nje stil modern dhe 3 ngjyra kryesore.\n' +
         'Kthe JSON: { "lloji_dhomes": "' + lloji + '", "dimensionet": {"gjeresi": 0, "gjatesi": 0}, "vendosja_elementeve": [{"emri": "Emri", "pozicioni_sugjeruar": "Pozicioni", "arsyeja": "Arsyeja"}], "stili_sugjeruar": "Stili", "ngjyrat_rekomanduara": ["#hex1", "#hex2", "#hex3"] }';
-      return await aiChat(prompt, base64Image);
+      return validoPlan(await aiChat(prompt, base64Image));
     } catch (e) {
       console.error('Room Planner Error:', e);
       return null;
@@ -122,7 +195,7 @@ export class AIVisionService {
         '2. Sugjero vendosjen ideale per: Lavamanin, WC, Dushen/Vasken.\n' +
         '3. Percakto nje stil modern.\n' +
         'Kthe JSON: { "lloji": "tualet", "dimensionet": {"gjeresi": 0, "gjatesi": 0}, "vendosja_elementeve": [{"emri": "Emri", "pozicioni_sugjeruar": "Pozicioni", "arsyeja": "Arsyeja"}], "stili_sugjeruar": "Stili" }';
-      return await aiChat(prompt, base64Image);
+      return validoTualet(await aiChat(prompt, base64Image));
     } catch (e) {
       console.error('Bathroom Planner Error:', e);
       return null;
@@ -134,7 +207,7 @@ export class AIVisionService {
       const prompt = 'Analizo kete foto te nje pune ndertimi dhe pershkrimin: "' + pershkrimi + '".\n' +
         'Gjenero nje preventiv te detajuar ne JSON.\n' +
         'Kthe JSON: { "materialet": [{"emri": "Emri", "sasia": "Sasia", "kosto_afersisht": "Vlera ne Lek"}], "puna_dore": "Vlera e punes", "total_afersisht": "Shuma totale", "kohezgjatja": "Sa dite pune" }';
-      return await aiChat(prompt, base64Image);
+      return validoPreventiv(await aiChat(prompt, base64Image));
     } catch (e) {
       console.error('Preventiv Error:', e);
       return null;
@@ -148,7 +221,7 @@ export class AIVisionService {
         '2. Dimensionet e peraferta (metra).\n' +
         '3. 3 Sygjerime te modeleve te fundit te dizajnit.\n' +
         'Kthe JSON: { "lloji": "Lloji", "dimensionet_afersisht": {"gjeresi": 0, "gjatesi": 0, "lartesi": 2.8}, "sygjerime_dizajni": ["Sygjerim 1", "Sygjerim 2", "Sygjerim 3"], "planimetria_svg_data": "pika per vizatim" }';
-      return await aiChat(prompt, base64Image);
+      return validoSkanim(await aiChat(prompt, base64Image));
     } catch (e) {
       console.error('Scan Error:', e);
       return null;
@@ -171,7 +244,7 @@ export class AIVisionService {
         '5. Sugjero zgjedhje murale (boje, letra, pllaka, etj) bazuar ne llojin e hapesires.\n' +
         (shtoDimensionReferimi ? 'Keto dimensione jane per referim: "' + shtoDimensionReferimi + '". Perdori per te shkalluar matjet.\n' : '') +
         'Kthe JSON: { "lloji_hapesires": "Lloji", "dimensionet_m": [{"muri": "Muri A", "gjatesia_m": 0}], "siperfaqja_m2": 0, "perimetri_m": 0, "forma": "drejtekendshe", "zgjedhje_murale": "sugjerimi" }';
-      return await aiChat(prompt, base64Image);
+      return validoMatje(await aiChat(prompt, base64Image));
     } catch (e) {
       console.error('Measure Error:', e);
       return null;

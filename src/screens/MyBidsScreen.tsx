@@ -16,7 +16,7 @@ export default function MyBidsScreen({ navigation }: any) {
       filter: `ustai_id = "${user.id}"`,
       expand: 'job_id,job_id.category_id',
       sort: '-created'
-    }).then((res) => {
+    }).then((res: any) => {
       setBids(res);
       setLoading(false);
     }).catch(() => setLoading(false));

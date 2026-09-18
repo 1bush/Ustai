@@ -1,29 +1,33 @@
 import { pb } from './pocketbase';
 
 /**
- * Shton kategoritë e reja në PocketBase nëse nuk ekzistojnë.
+ * Bën seed të kategorive bazë në PocketBase (vetëm nëse serveri funksionon).
+ * Mund të thërret eta nga ekranet e hyrjes ose nga AdminTestScreen.
  */
 export async function seedCategories() {
-  const kategoriteEReja = [
-    { emri: 'Arkitekt', ikona: '🏛️' },
-    { emri: 'Interior Design', ikona: '🛋️' },
-    { emri: 'Izolime Taracash', ikona: '🏠' }
-  ];
+  if (!pb) return;
 
   try {
-    const ekzistueset = await pb.collection('categories').getFullList({
-      sort: 'emri'
-    });
+    const existing = await pb.collection('categories').getList(1, 1);
+    if (existing.totalItems > 0) return; // Të gjitha kategoritë ekzistojnë
 
-    for (const kat of kategoriteEReja) {
-      const gjetur = ekzistueset.find(e => e.emri.toLowerCase() === kat.emri.toLowerCase());
+    const kategorite = [
+      { emri: 'Rregullimi dhe Lajmimi', ikona: '🔧' },
+      { emri: 'Dhomat (Kuzhina, Tualeti, Dhome Gjumi)', ikona: '🏠' },
+      { emri: 'Tokësirat dhe Pestat', ikona: '🌍' },
+      { emri: 'Diturie Elektronike', ikona: '⚡' },
+      { emri: 'Lartësia dhe Ftohtësia', ikona: '❄️' },
+      { emri: 'Aksesueshmëria', ikona: '♿' },
+    ];
 
-      if (!gjetur) {
-        console.log(`Duke shtuar kategorinë e re: ${kat.emri}`);
+    for (const kat of kategorite) {
+      try {
         await pb.collection('categories').create(kat);
+      } catch {
+        // Ndonjëherë ka konflikt — thyhet xorë e vazhdo
       }
     }
-  } catch (error) {
-    console.error('Gabim gjatë seeding të kategorive:', error);
+  } catch (e) {
+    console.warn('seedCategories dështoi (mund të jetë offline):', e);
   }
 }

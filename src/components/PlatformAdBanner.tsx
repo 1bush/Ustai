@@ -15,7 +15,7 @@ export default function PlatformAdBanner({ vendosja = 'banner_kryesor' }: Props)
       filter: `aktive = true && vendosja = '${vendosja}'`,
       sort: '-krijuar_me'
     })
-      .then((res) => {
+      .then((res: any) => {
         if (res.items.length > 0) setReklama(res.items[0]);
         else setReklama(null);
       })

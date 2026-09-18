@@ -32,3 +32,9 @@ android/.navigation/
 # OS
 .DS_Store
 Thumbs.db
+
+# Build logs and temp files
+*.err
+*.log
+*pid.txt
+*.pid

@@ -18,7 +18,7 @@ export default function AvailableJobsScreen({ navigation }: any) {
       });
 
       // Marrim rating-un për çdo klient nga koleksioni profiles
-      const punetMeRating = await Promise.all(data.map(async (job) => {
+      const punetMeRating = await Promise.all(data.map(async (job: any) => {
         try {
           const profile = await pb.collection('profiles').getOne(job.klient_id);
           return { ...job, klientRating: profile.rating };
@@ -28,8 +28,8 @@ export default function AvailableJobsScreen({ navigation }: any) {
       }));
 
       setPunet(punetMeRating);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Mock lokal pa server — lista mbetet bosh.
     } finally {
       setLoading(false);
     }

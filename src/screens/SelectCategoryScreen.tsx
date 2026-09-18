@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { pb } from '../lib/pocketbase';
 import { NGJYRAT } from '../theme/colors';
@@ -10,7 +10,7 @@ export default function SelectCategoryScreen({ navigation }: any) {
 
   useEffect(() => {
     pb.collection('categories').getFullList({ sort: 'emri' })
-      .then((res) => {
+      .then((res: any) => {
         setCategories(res);
         setLoading(false);
       })
@@ -27,8 +27,8 @@ export default function SelectCategoryScreen({ navigation }: any) {
         category_id: catId
       });
       navigation.reset({ index: 0, routes: [{ name: 'FaqjaUstait' }] });
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      Alert.alert('Gabim', 'Dështoi ruajtja e kategorisë: ' + (e.message || 'Provoni përsëri.'));
     }
   };
 

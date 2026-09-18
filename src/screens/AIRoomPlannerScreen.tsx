@@ -20,14 +20,14 @@ export default function AIRoomPlannerScreen() {
   };
 
   const gjeneroPlanin = async (base64: string) => {
-    setDuke_ngarkuar(true);
+    setDukeNgarkuar(true);
     try {
       const data = await AIVisionService.skanoDhomen(base64);
       setPlani(data);
     } catch (e) {
       Alert.alert('Gabim', 'AI nuk mundi të procesonte skanimin.');
     } finally {
-      setDuke_ngarkuar(false);
+      setDukeNgarkuar(false);
     }
   };
 

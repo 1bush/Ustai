@@ -10,7 +10,7 @@ export default function VerifiedHistoryBadge({ ustaiId }: { ustaiId: string }) {
 
   useEffect(() => {
     pb.collection('ustai_historiku_verifikuar').getFirstListItem(`ustai_id = '${ustaiId}'`)
-      .then((res) => {
+      .then((res: any) => {
         setHistoriku(res);
       })
       .catch(() => setHistoriku(null));

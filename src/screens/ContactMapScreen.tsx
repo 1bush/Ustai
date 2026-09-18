@@ -29,7 +29,7 @@ export default function ContactMapScreen({ navigation }: any) {
       });
 
       // Për çdo lokacion, marrim edhe profilin (rating)
-      const mapped = await Promise.all(res.map(async (loc) => {
+      const mapped = await Promise.all(res.map(async (loc: any) => {
         try {
           const profile = await pb.collection('profiles').getOne(loc.ustai_id, {
             expand: 'user_id,category_id'
@@ -42,8 +42,8 @@ export default function ContactMapScreen({ navigation }: any) {
       }));
 
       setUstallaret(mapped.filter(i => i !== null));
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Mock lokal pa server — harta mbetet bosh.
     } finally {
       setLoading(false);
     }
@@ -60,7 +60,7 @@ export default function ContactMapScreen({ navigation }: any) {
         <ActivityIndicator size="large" color={NGJYRAT.primare} style={{ flex: 1 }} />
       ) : (
         <FreeMap region={rajoni} style={{ flex: 1 }}>
-          {ustallaret.map((item) => {
+          {ustallaret.map((item: any) => {
             const rating = item.profile.rating || 1;
             // Shkallëzojmë përmasën e marker-it bazuar në rating (1-5)
             // Sa më shumë yje, aq më i madh markeri

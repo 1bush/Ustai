@@ -15,7 +15,7 @@ export default function UstaiPublicProfileScreen({ route, navigation }: any) {
       filter: `ustai_id = "${profile.id}"`,
       sort: '-created',
       expand: 'klient_id'
-    }).then(res => {
+    }).then((res: any) => {
       setReviews(res);
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -54,7 +54,7 @@ export default function UstaiPublicProfileScreen({ route, navigation }: any) {
           {reviews.length === 0 ? (
             <Text style={styles.tekstZbehur}>Nuk ka ende vlerësime për këtë usta.</Text>
           ) : (
-            reviews.map((rev) => (
+            reviews.map((rev: any) => (
               <View key={rev.id} style={[styles.reviewKarta, rev.stars < 3 && styles.negativeReview]}>
                 <View style={styles.reviewHeader}>
                   <Text style={styles.reviewKlienti}>{rev.expand?.klient_id?.name || 'Klient'}</Text>

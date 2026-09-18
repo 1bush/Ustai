@@ -1,0 +1,54 @@
+// Ollama AI (local) - shërben si zëvendësim për Groq AI
+const OLLAMA_URL = process.env.EXPO_PUBLIC_OLLAMA_URL || 'http://localhost:11434';
+const OLLAMA_MODEL = process.env.EXPO_PUBLIC_OLLAMA_MODEL || 'llama3.2-vision:11b';
+
+/**
+ * Thirrje e përbashkët ndaj Ollama AI (local).
+ * Kthen përgjigjen e deshinuar JSON ose hedh një gabim.
+ */
+export async function thirrOllamaAI(prompt: string, imageBase64?: string, temperature: number = 0.1): Promise<any> {
+  try {
+    const body: any = {
+      model: OLLAMA_MODEL,
+      prompt: prompt,
+      format: 'json',
+      stream: false,
+      options: {
+        temperature: temperature,
+      },
+    };
+
+    if (imageBase64) {
+      // Ollama pret vetëm pjesën e dhënave, pa headerin 'data:image/jpeg;base64,'
+      const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      body.images = [cleanBase64];
+    }
+
+    const res = await fetch(`${OLLAMA_URL}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Ollama API error: ${res.status}`);
+    }
+
+    const data = await res.json();
+    if (data.response) {
+      try {
+        return JSON.parse(data.response);
+      } catch (parseError) {
+        // Ndonjëherë modeli kthen tekst që përmban JSON, provojmë ta nxjerrim
+        const jsonMatch = data.response.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
+        throw parseError;
+      }
+    }
+    throw new Error('Ollama nuk u pergjigj me JSON.');
+  } catch (e) {
+    throw new Error('AI Ollama e deshtuar: ' + e);
+  }
+}

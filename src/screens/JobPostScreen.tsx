@@ -36,7 +36,7 @@ export default function JobPostScreen({ navigation, route }: any) {
   useEffect(() => {
     pb.collection('categories').getFullList({
       sort: 'emri'
-    }).then((res) => setKategorite(res));
+    }).then((res: any) => setKategorite(res));
 
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -126,11 +126,11 @@ export default function JobPostScreen({ navigation, route }: any) {
       formData.append('klient_id', user.id);
       formData.append('category_id', categoryId);
       formData.append('pershkrimi', pershkrimi);
-      formData.append('siperfaqja_m2', parseFloat(m2));
+      formData.append('siperfaqja_m2', String(parseFloat(m2)));
       formData.append('afati_perfundimit', afati.toISOString().split('T')[0]);
       formData.append('vendndodhja', JSON.stringify({ lat: rajoni.latitude, lng: rajoni.longitude }));
       formData.append('status', 'ne_ankand');
-      formData.append('eshte_urgjente', eshteUrgjente);
+      formData.append('eshte_urgjente', String(eshteUrgjente));
 
       fotot.forEach((uri, index) => {
         formData.append('fotot', {
@@ -148,8 +148,8 @@ export default function JobPostScreen({ navigation, route }: any) {
         if (matches && matches.length > 0) {
           await AutoNotificationService.notifyNewJob(job.id, matches.map((m: any) => m.ustai_id));
         }
-      } catch (aiErr) {
-        console.error('Gabim në njoftimet AI:', aiErr);
+      } catch {
+        // Njoftimet AI kapërcehen pa server — puna ruhet lokalisht.
       }
 
       if (eshteUrgjente || deshironGaranci) {

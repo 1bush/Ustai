@@ -1,4 +1,5 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+// AGP 8.12.0 + Kotlin 2.1.20 + JDK 17 (required by react-native 0.86.2 / expo 57).
 
 buildscript {
   repositories {
@@ -6,9 +7,9 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath('com.android.tools.build:gradle')
+    classpath('com.android.tools.build:gradle:8.12.0')
     classpath('com.facebook.react:react-native-gradle-plugin')
-    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20')
   }
 }
 
@@ -18,6 +19,35 @@ allprojects {
     mavenCentral()
     maven { url 'https://www.jitpack.io' }
   }
+}
+
+// Configure JVM args for Gradle to avoid OOM and improve build performance
+gradle.projectsEvaluated {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:-options"
+        options.encoding = "UTF-8"
+    }
+}
+
+// Disable deprecated BuildConfig feature (moved from settings.gradle where
+// subprojects{} is not available in Gradle 9.x settings context).
+// Kotlin compilation options (jvmTarget=17, -Xjvm-default=all) are configured
+// below via the kotlin extension, not via tasks.withType — Gradle 9.x removed
+// withType(String), and the KotlinCompile class is not resolvable at root level.
+subprojects {
+    afterEvaluate {
+        if (project.hasProperty('android')) {
+            project.android.buildFeatures.buildConfig = false
+        }
+        if (project.plugins.hasPlugin('org.jetbrains.kotlin.android') || project.plugins.hasPlugin('org.jetbrains.kotlin.jvm')) {
+            def kotlinExt = project.extensions.findByName('kotlin')
+            if (kotlinExt != null) {
+                try {
+                    kotlinExt.jvmToolchain(17)
+                } catch (Exception ignored) {}
+            }
+        }
+    }
 }
 
 apply plugin: "expo-root-project"

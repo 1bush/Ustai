@@ -86,7 +86,6 @@ export class AutoNotificationService {
           // Në PocketBase mund të përdorim expand nese eshte konfiguruar,
           // ose t'i marrim manualisht si këtu
           const template = await pb.collection('notification_templates').getOne(item.template_id);
-          console.log(`Duke dërguar ${item.lloji} te ${item.user_id}: ${template?.permbajtja}`);
 
           await pb.collection('notification_queue').update(item.id, {
             status: 'derguar',
