@@ -35,7 +35,9 @@ export default function ChatScreen({ route }: any) {
         sort: 'created'
       });
       setMesazhet(data ?? []);
-    } catch (e) {}
+    } catch (error) {
+      console.warn('Mesazhet nuk mund të ngarkohen; po shfaqet chat bosh.', error);
+    }
   };
 
   const dergo = async () => {
@@ -52,7 +54,9 @@ export default function ChatScreen({ route }: any) {
         teksti: teksti.trim(),
       });
       setTeksti('');
-    } catch (e) {}
+    } catch (error) {
+      console.warn('Mesazhi nuk u dërgua.', error);
+    }
   };
 
   return (

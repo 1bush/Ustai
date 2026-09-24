@@ -6,8 +6,5 @@ export function normalizoTelefonin(input: string): string | null {
   if (/^003556\d{8}$/.test(pastruar)) return `+${pastruar.slice(2)}`;
   if (/^06\d{8}$/.test(pastruar)) return `+355${pastruar.slice(1)}`;
 
-  // BYPASS PËR TESTIM: Lejojmë çdo numër 3+ shifror
-  if (pastruar.length >= 3) return pastruar;
-
   return null;
 }

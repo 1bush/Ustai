@@ -15,7 +15,9 @@ export default function ContactPreferenceToggle() {
         if (!pb.authStore.model) return;
         const data = await pb.collection('profiles').getOne(pb.authStore.model.id);
         if (data?.preferenca_kontakti) setPreferenca(data.preferenca_kontakti);
-      } catch (e) {}
+      } catch (error) {
+        console.warn('Preferenca e kontaktit nuk u ngarkua.', error);
+      }
     })();
   }, []);
 
@@ -25,7 +27,9 @@ export default function ContactPreferenceToggle() {
       if (pb.authStore.model) {
         await pb.collection('profiles').update(pb.authStore.model.id, { preferenca_kontakti: vlera });
       }
-    } catch (e) {}
+    } catch (error) {
+      console.warn('Preferenca e kontaktit nuk u ruajt.', error);
+    }
   };
 
   return (

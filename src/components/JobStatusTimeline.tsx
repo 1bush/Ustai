@@ -32,7 +32,9 @@ export default function JobStatusTimeline({ jobId, leJoUstai = false }: Props) {
 
       const jobData = await pb.collection('jobs').getOne(jobId);
       if (jobData) setFotoPasNgarkuar(!!jobData.foto_pas_ngarkuar);
-    } catch (e) {}
+    } catch (error) {
+      console.warn('Timeline-ja e punës nuk mund të ngarkohet.', error);
+    }
   };
 
   const shenoHapin = async (kyci: string) => {
@@ -54,7 +56,9 @@ export default function JobStatusTimeline({ jobId, leJoUstai = false }: Props) {
         krijuar_me: new Date().toISOString()
       });
       ngarko();
-    } catch (e) {}
+    } catch (error) {
+      console.warn('Hapi i punës nuk u ruajt.', error);
+    }
   };
 
   const indeksiAktual = HAPAT.findIndex((h) => !ngjarjet[h.kyci]);

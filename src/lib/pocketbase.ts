@@ -84,7 +84,9 @@ export const pbReady: Promise<void> = (async () => {
       const parsed = JSON.parse(data);
       if (parsed?.token && parsed?.model) pb.authStore.save(parsed.token, parsed.model);
     }
-  } catch {}
+  } catch (error) {
+    console.warn('Sesioni i ruajtur nuk mund të lexohet; po vazhdohet pa sesion.', error);
+  }
 })();
 
 export default pb;

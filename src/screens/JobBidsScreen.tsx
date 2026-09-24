@@ -10,7 +10,9 @@ export default function JobBidsScreen({ route, navigation }: any) {
   const [puna, setPuna] = useState<any>(null);
 
   useEffect(() => {
-    pb.collection('jobs').getOne(jobId, { expand: 'category_id' }).then(setPuna);
+    pb.collection('jobs').getOne(jobId, { expand: 'category_id' })
+      .then(setPuna)
+      .catch((error: unknown) => console.warn('Puna nuk mund të ngarkohet.', error));
 
     const ngarkoOfertat = async () => {
       try {
@@ -20,7 +22,9 @@ export default function JobBidsScreen({ route, navigation }: any) {
           expand: 'ustai_id'
         });
         setOfertat(data ?? []);
-      } catch (e) {}
+      } catch (error) {
+        console.warn('Ofertat nuk mund të ngarkohen.', error);
+      }
     };
 
     ngarkoOfertat();

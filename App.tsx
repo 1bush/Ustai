@@ -138,11 +138,17 @@ export default function App() {
     // Restore pb.authStore.onChange logic if needed
     const unsubscribe = pb.authStore.onChange((token: any, model: any) => {
       // .catch bosh: njoftimet push kërkojnë internet dhe nuk duhet të bllokojnë app-in offline.
-      if (model) regjistroPerNjoftime().catch(() => {});
+      if (model) {
+        regjistroPerNjoftime().catch((error) => {
+          console.warn('Njoftimet dështuan; aplikacioni vazhdon offline.', error);
+        });
+      }
     });
 
     if (pb.authStore.model) {
-      regjistroPerNjoftime().catch(() => {});
+      regjistroPerNjoftime().catch((error) => {
+        console.warn('Njoftimet fillestare dështuan; aplikacioni vazhdon offline.', error);
+      });
     }
 
     // seedCategories(); // E MBYLLUR PËR TESTIM (SERVER CALL)

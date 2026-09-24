@@ -25,7 +25,9 @@ export default function ReferralScreen() {
         expand: 'referred_id'
       });
       setReferrals(refs);
-    } catch (e) {}
+    } catch (error) {
+        console.warn('Të dhënat e referimit nuk mund të ngarkohen.', error);
+      }
   };
 
   const shperndajKodin = async () => {
@@ -34,7 +36,9 @@ export default function ReferralScreen() {
       await Share.share({
         message: `Përshëndetje! Regjistrohu në Ustai Im me kodin tim: ${profile.referral_code} dhe fillo të fitosh punë sot!`,
       });
-    } catch (error) {}
+    } catch (error) {
+      console.warn('Kodi i referimit nuk mund të ndahet.', error);
+    }
   };
 
   return (

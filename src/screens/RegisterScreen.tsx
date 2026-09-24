@@ -24,7 +24,11 @@ export default function RegisterScreen({ navigation, route }: any) {
         username: telPastruar.replace(/\D/g, ''),
         role: roli
       } as any);
-    } catch {}
+    } catch (error) {
+      console.warn('Ruajtja e sesionit të regjistrimit dështoi.', error);
+      Alert.alert('Gabim', 'Nuk u arrit të ruhej sesioni. Provo përsëri.');
+      return;
+    }
 
     Alert.alert('Sukses', 'Po hyni në sistem (Test Mode)...', [
       {

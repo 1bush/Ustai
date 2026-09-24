@@ -108,7 +108,8 @@ export default function LoginScreen({ navigation }: any) {
         }
       ]);
     } catch (error) {
-      // Gabim i heshtur — navigimi vazhdon me mock sesion.
+      console.warn('Hyrja me telefon dështoi; sesioni nuk u ruajt.', error);
+      Alert.alert('Gabim', 'Nuk u arrit të ruhej sesioni. Provo përsëri.');
     } finally {
       setIsLoading(false);
     }
