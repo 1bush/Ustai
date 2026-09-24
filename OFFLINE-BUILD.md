@@ -76,6 +76,44 @@ adb install -r "C:\Users\roven\Desktop\ustai-app claude\android\app\build\output
 | PocketBase | — | **Mock lokal**, pa thirrje rrjeti (`src/lib/pocketbase.ts`) |
 | AI (diagnozë/skanim/plan/preventiv/matje) | — | **Lokale/offline** (`src/lib/localAI.ts`) |
 
+## Pse gabimi vazhdonte edhe pas rregullimit
+
+Rregullimi (`debuggableVariants = []` + `useDevSupport = false`) u shkrua në kod,
+por **APK-ja në telefon ishte ndërtuar PARA atij rregullimi**:
+
+| | Data | Gjendja |
+|---|---|---|
+| Commit-i i rregullimit | 19/09/2026 | kodi i rregulluar |
+| `Desktop\ustai-app-release.apk` | 16/09/2026 | **i vjetër** — debug me dev-support |
+
+Pra kodi ishte i saktë; mungonte **rindërtimi dhe riinstalimi**.
+
+Gjithashtu `android\app\src\main\assets\` ishte **bosh** (pa `index.android.bundle`).
+Kjo është normale — bundle-i nuk ruhet në git (`android/app/src/main/assets/*.bundle`
+është në `.gitignore`) dhe gjenerohet nga Gradle në task-un
+`createBundleReleaseJsAndAssets` / `createBundleDebugJsAndAssets`. Ai task
+ekzekutohet **vetëm nëse varianti nuk është në `debuggableVariants`** — pikërisht
+arsyeja pse lista u la bosh.
+
+Kontroll i shpejtë që APK-ja e ndërtuar e përmban bundle-in:
+
+```powershell
+cd android
+.\gradlew.bat assembleRelease --no-daemon
+Get-ChildItem app\build\outputs\apk\release\app-release.apk |
+  Select-Object FullName, Length, LastWriteTime
+```
+
+## Ikonat dhe logot
+
+Të gjitha gjenerohen nga `assets/logo-master.png` me një komandë:
+
+```powershell
+python scripts\generate-icons.py
+```
+
+Detajet (6 problemet e ikonave dhe zgjidhjet): shiko **`docs/IKONAT.md`**.
+
 ## Verifikim i shpejtë
 
 ```powershell

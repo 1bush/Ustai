@@ -23,6 +23,10 @@ android/.gradle/
 android/build/
 android/captures/
 android/.navigation/
+# JS bundle: gjenerohet nga Gradle (createBundle<Variant>JsAndAssets) dhe
+# kompajlohet ne Hermes bytecode. Mos e vendos manualisht ketu!
+android/app/src/main/assets/*.bundle
+android/app/src/main/assets/*.hbc
 
 # IDE
 .idea/

@@ -7,11 +7,12 @@
     "start": "expo start",
     "android": "expo run:android",
     "prebuild": "expo prebuild",
+    "icons": "python scripts/generate-icons.py",
     "clean:android": "cd android && gradlew.bat --stop && gradlew.bat clean",
     "clean:full": "npx rimraf .expo android/.gradle android/app/build android/build node_modules/.cache && npm run clean:android",
     "build:android": "npm run clean:android && npm run bundle:android && cd android && gradlew.bat assembleRelease --no-daemon",
     "build:apk": "npm run build:android",
-    "build:apk:debug": "cd android && gradlew.bat assembleDebug --no-daemon",
+    "build:apk:debug": "npm run bundle:android && cd android && gradlew.bat assembleDebug --no-daemon",
     "bundle:android": "npx expo export:embed --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
     "ios": "expo run:ios"
   },

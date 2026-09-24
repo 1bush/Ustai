@@ -6,6 +6,10 @@
     <item name="android:navigationBarColor">@android:color/transparent</item>
   </style>
   <style name="Theme.App.SplashScreen" parent="AppTheme">
-    <item name="android:windowBackground">@drawable/splashscreen_logo</item>
+    <!-- Layer-list: sfond i errët + logo e centruar (pa shtrirje/stirje).
+         @drawable/splashscreen_logo është kanavacë transparente 288dp, prandaj
+         duhet gjithmonë të vendoset si bitmap i centruar, jo si windowBackground
+         i drejtpërdrejtë (përndryshe Android e shtrin në ekran të plotë). -->
+    <item name="android:windowBackground">@drawable/splashscreen</item>
   </style>
 </resources>
