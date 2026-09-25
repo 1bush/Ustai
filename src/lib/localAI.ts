@@ -1,22 +1,18 @@
 /**
- * AI LOKALE (offline) — zëvendëson plotësisht Ollama.
+ * AI DEMO (offline) — fallback automatik i Ollama-s.
  *
- * Ollama është HEQUR nga projekti:
- *   - nuk ka më server në localhost:11434 / asnjë URL OLLAMA
- *   - nuk ka më asnjë thirrje rrjeti nga ky modul
- *   - nuk ka më varësi nga shërbime të jashtme
+ * Ky modul NUK bën asnjë thirrje rrjeti. Kthen të dhëna demo DETERMINISTE sipas
+ * llojit të prompt-it, kështu që ekranet AI (Diagnozë, Skanim, Planifikues,
+ * Preventiv, Matje) mund të testohen pa internet dhe pa server.
  *
- * Moduli kthen të dhëna demo DETERMINISTE sipas llojit të prompt-it, kështu që
- * të gjitha ekranet AI (Diagnozë, Skanim, Planifikues, Preventiv, Matje) mund të
- * testohen pa internet dhe pa server.
+ * Nuk thirret drejtpërdrejt nga ekranet: thirrja kalon nga `ollama.ts` → `thirrAI()`,
+ * i cili provon Ollama-n dhe bie këtu VETËM kur serveri nuk arrihet (i pa instaluar,
+ * pa rrjet ose timeout). Nëse Ollama përgjigjet me JSON të pavlefshëm, gabimi
+ * shfaqet — nuk maskohet me të dhëna demo.
  *
  * Forma e të dhënave përputhet me validuesit në `aiVisionService.ts`
  * (validoPlan / validoTualet / validoPreventiv / validoSkanim / validoMatje)
  * dhe me `AIDiagnosisResult` në `aiDiagnosis.ts`.
- *
- * Për të rikthyer Ollama-n real:
- *   Copy-Item src/lib/ollama.ts.REAL.BAK src/lib/ollama.ts -Force
- *   pastaj ktheji importet në `./ollama` dhe emrin `thirrOllamaAI`.
  */
 
 /** Vonesa e simuluar (ms) që gjendjet "duke u ngarkuar" të vihen re në UI. */

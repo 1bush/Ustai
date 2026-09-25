@@ -24,7 +24,7 @@ Use the following commands for development and building:
 
 ## Core Services & Integration
 - **PocketBase**: REMOVED. `src/lib/pocketbase.ts` is a local mock — it keeps the same surface (`pb`, `pbReady`) but makes **no network calls**. Restore with `Copy-Item src/lib/pocketbase.ts.REAL.BAK src/lib/pocketbase.ts -Force`.
-- **AI Services**: Ollama is REMOVED (no `localhost:11434`, no API keys, no network). `src/lib/localAI.ts` exports `thirrAILokale()` and returns deterministic offline demo data, so every AI screen is testable without any server. Restore Ollama with `Copy-Item src/lib/ollama.ts.REAL.BAK src/lib/ollama.ts -Force`.
+- **AI Services**: Ollama lokal (`src/lib/ollama.ts` → `thirrAI()`). Pa API key cloud, pa shërbim të jashtëm. Nëse serveri Ollama nuk arrihet (i pa instaluar, pa rrjet, timeout), kalon automatikisht te `src/lib/localAI.ts` (`thirrAILokale()` — të dhëna demo deterministe), kështu që çdo ekran AI mbetet i testueshëm pa server. Konfigurimi: `EXPO_PUBLIC_OLLAMA_URL` / `EXPO_PUBLIC_OLLAMA_MODEL` në `.env`.
 - **Payments**: Stripe is used for payment processing. Ensure `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` is set in the environment.
 
 ## Commit & Pull Request Guidelines

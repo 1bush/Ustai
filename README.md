@@ -26,7 +26,7 @@ Platformë dy-façe që lejon:
 | Payments | Stripe React Native |
 | Harta | `react-native-maps` + **Nominatim (OpenStreetMap)** për geocoding — jo Mapbox |
 | Notifications | Expo Notifications |
-| AI | `src/lib/localAI.ts` — **lokale/offline**, pa server, pa API key, pa internet |
+| AI | **Ollama lokal** (`src/lib/ollama.ts` → `thirrAI()`), me fallback automatik demo offline |
 | Alias rrugësh | `@/*` → `src/*` (`babel.config.js` + `tsconfig.json`) |
 
 ### Admin Dashboard
@@ -85,6 +85,8 @@ Kopjo `.env.example` në `.env`. Të gjitha janë **opsionale** për aplikacioni
 | Variabla | Efekti |
 |---|---|
 | `EXPO_PUBLIC_POCKETBASE_URL` | Bosh ⇒ **mock lokal**. Plotësuar (p.sh. `http://127.0.0.1:8090`) ⇒ PocketBase real |
+| `EXPO_PUBLIC_OLLAMA_URL` | Serveri AI lokal (default `http://localhost:11434`; emulator: `http://10.0.2.2:11434`) |
+| `EXPO_PUBLIC_OLLAMA_MODEL` | Modeli Ollama (default `llama3.2-vision:11b`) |
 | `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Çelësi publik i Stripe |
 | `EXPO_PUBLIC_WP_GO_MAP_TOKEN` | Token për embed-in WP Go Map |
 
@@ -114,11 +116,12 @@ Rregjistrohen të gjitha në `App.tsx`. ⚠️ = **placeholder / në ndërtim** 
 
 **Të tjera** — `ReferralScreen` · `ContactMapScreen` · `AdminTestScreen`
 
-## 🧠 Shërbimet AI (lokale / offline)
+## 🧠 Shërbimet AI (Ollama lokale)
 
 | Moduli | Roli |
 |---|---|
-| `lib/localAI.ts` | `thirrAILokale()` — të dhëna demo deterministe, pa rrjet (zëvendëson Ollama) |
+| `lib/ollama.ts` | `thirrAI()` — thirrje ndaj Ollama-s lokale; bie automatikisht në demo offline kur serveri nuk arrihet |
+| `lib/localAI.ts` | `thirrAILokale()` — të dhëna demo deterministe, pa rrjet (fallback-u) |
 | `lib/aiVisionService.ts` | Validuesit e përgjigjeve AI + analizë foto, planifikim hapësirash, skanim |
 | `lib/aiMatching.ts` | Përputhja ustai ↔ klient dhe rekomandime |
 | `lib/aiDiagnosis.ts` | Diagnozë problemesh nga foto + kategorizim automatik |
@@ -226,7 +229,8 @@ APK-ja del në `android/app/build/outputs/apk/release/app-release.apk`.
 |---|---|
 | "Could not connect to development server" | Kontrollo `debuggableVariants = []` + `useDevSupport = false` (shih `OFFLINE-BUILD.md`) |
 | Ekranet shfaqin të dhëna boshe | E pritshme — mock-u lokal. Plotëso `EXPO_PUBLIC_POCKETBASE_URL` për të dhëna reale |
-| AI nuk kthen përgjigje | AI-ja është lokale (`localAI.ts`); nuk ka server për të kontrolluar |
+| AI nuk kthen përgjigje reale | Kontrollo nëse Ollama punon: `ollama list` dhe `http://localhost:11434/api/tags`. Pa të, app-i kthen të dhëna demo |
+| Modeli AI mungon në Ollama | `ollama pull llama3.2-vision:11b` (ose vendos `EXPO_PUBLIC_OLLAMA_MODEL`) |
 | Ikona e gabuar në APK | `npm run icons`, pastaj rindërto |
 
 ## 📄 Licenca

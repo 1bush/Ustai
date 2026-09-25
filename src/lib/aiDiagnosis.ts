@@ -1,5 +1,5 @@
-// AI lokale offline — Ollama është hequr nga projekti.
-import { thirrAILokale } from './localAI';
+// AI — Ollama lokale (me fallback automatik offline nëse serveri nuk arrihet).
+import { thirrAI } from './ollama';
 
 export interface AIDiagnosisResult {
   kategoria_sugjeruar: string;
@@ -9,10 +9,10 @@ export interface AIDiagnosisResult {
 }
 
 /**
- * AI lokale (offline) — pa server dhe pa thirrje rrjeti.
+ * Thirrja e përbashkët: Ollama lokale, me fallback demo kur serveri mungon.
  */
 async function aiChatDiagnosis(prompt: string, imageBase64?: string): Promise<any> {
-  return thirrAILokale(prompt, imageBase64, 0.1);
+  return thirrAI(prompt, imageBase64, 0.1);
 }
 
 export class AIDiagnosisService {

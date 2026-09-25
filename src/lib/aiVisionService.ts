@@ -1,5 +1,5 @@
-// AI lokale offline — Ollama është hequr nga projekti.
-import { thirrAILokale } from './localAI';
+// AI — Ollama lokale (me fallback automatik offline nëse serveri nuk arrihet).
+import { thirrAI } from './ollama';
 import { AIFailedError } from './errors';
 
 export interface AIEstimate {
@@ -47,10 +47,10 @@ export interface AIRoomMeasurement {
   zgjedhje_murale: string;
 }
 
-/** Thirrje e AI lokale (offline); kthen objekt të përvjelur ose hedh AIFailedError. */
+/** Thirrje e AI (Ollama, me fallback demo); kthen objekt ose hedh AIFailedError. */
 async function aiChat(prompt: string, imageBase64?: string): Promise<unknown> {
   try {
-    return await thirrAILokale(prompt, imageBase64);
+    return await thirrAI(prompt, imageBase64);
   } catch (e) {
     // Në vend që të hidhet një mesazh i papërpunuar, hidhet një gabim i tipizuar.
     throw new AIFailedError(undefined, e);

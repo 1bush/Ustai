@@ -74,7 +74,7 @@ adb install -r "C:\Users\roven\Desktop\ustai-app claude\android\app\build\output
 | Kërkim adrese | `nominatim.openstreetmap.org` | Kthen `null`/`[]` (trajtuar me `try/catch`) |
 | Njoftime push | Expo/FCM token | Kthen `false`, log paralajmërues |
 | PocketBase | — | **Mock lokal**, pa thirrje rrjeti (`src/lib/pocketbase.ts`) |
-| AI (diagnozë/skanim/plan/preventiv/matje) | — | **Lokale/offline** (`src/lib/localAI.ts`) |
+| AI (diagnozë/skanim/plan/preventiv/matje) | Ollama lokal (`EXPO_PUBLIC_OLLAMA_URL`) | Kalon në AI demo offline (`src/lib/localAI.ts`) — ekranet punojnë normalisht |
 
 ## Pse gabimi vazhdonte edhe pas rregullimit
 
