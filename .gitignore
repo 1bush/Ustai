@@ -42,3 +42,10 @@ Thumbs.db
 *.log
 *pid.txt
 *.pid
+
+# Build outputs (gjenerohen nga build_android.bat / npm run build:*)
+build_*.txt
+bundle_*.txt
+gen_*.txt
+expo_cfg.txt
+*.bak
