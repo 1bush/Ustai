@@ -26,7 +26,10 @@ assets/logo-master.png → python scripts/generate-icons.py
 - **Backend**: `src/lib/pocketbase.ts` është **HIBRID** — mock lokal (AsyncStorage)
   kur `EXPO_PUBLIC_POCKETBASE_URL` është bosh; PocketBase real kur plotësohet.
   Në `.env` është bosh ⇒ momentalisht **gjithçka është mock lokal, pa rrjet**.
-- **AI**: `src/lib/localAI.ts` — offline i plotë (Ollama u hoq, 0 thirrje rrjeti)
+- **AI**: `src/lib/ollama.ts` → `thirrAI()` — **Ollama lokale** (`EXPO_PUBLIC_OLLAMA_URL`).
+  Nëse serveri nuk arrihet, bie automatikisht te `src/lib/localAI.ts` (`thirrAILokale()`,
+  të dhëna demo deterministe) ⇒ ekranet AI punojnë edhe pa server. **Pa API key cloud.**
+  Në këtë kompjuter Ollama **nuk është i instaluar**, ndaj aktualisht kthen demo.
 - **Build offline**: `build_android.bat` ose `npm run build:apk` (shih `OFFLINE-BUILD.md`)
 - **Ikona**: burim i vetëm + gjenerator (shih `docs/IKONAT.md`)
 
@@ -49,22 +52,45 @@ assets/logo-master.png → python scripts/generate-icons.py
 6. **P1 — `ErrorBoundary` u lidh në `App.tsx`.** Komponenti ekzistonte por **nuk përdorej**;
    tani mbështjell `SafeAreaProvider` ⇒ app-i nuk bie më në ekran të zi. Verifikuar me
    `tsc --noEmit --skipLibCheck` → **0 gabime**.
+7. **AI → Ollama (Groq u fshi fare).** U krijua `src/lib/ollama.ts`: thirrje ndaj
+   `POST {EXPO_PUBLIC_OLLAMA_URL}/api/generate` me `format: "json"`, timeout 120 s dhe
+   `AbortController`. **Fallback vetëm kur serveri nuk arrihet** (nuk maskohet një përgjigje
+   e pavlefshme me të dhëna demo). `aiDiagnosis.ts` dhe `aiVisionService.ts` tani përdorin
+   `thirrAI()`. U hoq `ollama.ts.REAL.BAK` (arkivuar). U përditësuan `.env`, `.env.example`,
+   `README.md`, `AGENTS.md`, `OFFLINE-BUILD.md`.
+8. **Siguri — token i hardkoduar.** `WPGoMap.tsx` kishte `ff864928…` **të shkruar në kod dhe
+   të commit-uar në git** (që nga *Initial commit*). Tani token-i vjen vetëm nga `.env` dhe
+   komponenti shfaq një mesazh të qartë "nuk është konfiguruar" kur mungon.
+9. **P2 — 6 komponentë orphan u lidhën:** `ChatMessage` → `ChatScreen` (u re-temua me
+   `NGJYRAT`; kishte paletë teal/bezhë nga repo tjetër) · `VerifiedHistoryBadge` +
+   `UstaiOfMonthBanner` → `UstaiPublicProfileScreen` · `PlatformAdBanner` →
+   `AvailableJobsScreen` · `ContactPreferenceToggle` → `UstaiProfileScreen` ·
+   `JobStatusTimeline` → `JobTimelineScreen` (u implementua nga stub 162-bajt).
+   Kështu edhe `platform_ads`, `ustai_of_month` dhe `ustai_historiku_verifikuar` fituan
+   konsumator UI.
+10. **P2 — laku me `admin-dashboard` u mbyll.** U implementuan `VerificationUploadScreen`
+    (shkruan `verification_documents` me `status: 'ne_pritje'`) dhe `ReportUserScreen`
+    (shkruan `reports` me `status: 'ne_pritje'`) — pikërisht koleksionet që paneli lexon dhe
+    aprovon. U shtuan edhe dy hyrje navigimi: profili i ustait → "Verifiko identitetin",
+    profili publik → "Raporto këtë ustai". Verifikuar me `tsc` → **0 gabime**.
 
 ## 4. Hapa të hapur (të audituar, të verifikuar, jo të bërë)
 
 | Prioritet | Problemi |
 |---|---|
-| P2 | **7 nga 10 komponentë mbeten orphan** (përdoren vetëm `FairPriceEstimate`, `FreeMap` dhe `ErrorBoundary`): `ChatMessage`, `ContactPreferenceToggle`, `JobStatusTimeline`, `PlatformAdBanner`, `UstaiOfMonthBanner`, `VerifiedHistoryBadge`, `WPGoMap` |
-| P2 | `admin-dashboard/` është **fund qorrsokak**: lidhet me PocketBase real dhe lexon/shkruan `reports` + `verification_documents`, koleksione që aplikacioni **nuk i shkruan kurrë** |
-| P2 | Koleksione të dhënash **pa konsumator UI**: `platform_ads`, `ustai_of_month`, `ustai_historiku_verifikuar` (komponentët përkatës janë orphan) |
-| P2 | `EXPO_PUBLIC_WP_GO_MAP_TOKEN` është në `.env` dhe `OFFLINE-BUILD.md` dokumenton `cloud.wpgmaps.com`, por `WPGoMap.tsx` nuk përdoret kurrë |
+| P2 | **`WPGoMap` mbetet i palidhur** — `ContactMapScreen` përdor `FreeMap`. Vendos: lidhe në një ekran ose fshije. Token-i i vjetër ishte i publikuar në git ⇒ **duhet rotacion** nëse do ta përdorësh |
+| P2 | **`verification_documents.dokumenti_url` ruan URI-n lokale** (`file://…`), jo një skedar të ngarkuar. Me PocketBase real duhet `FormData` (multipart), që paneli admin ta hapë me `pb.files.getUrl` |
 | P2 | 6 folder `ustai*` të duplikuar në disk; `Desktop\ustai-app-release.apk` (111 MB, 16/09) është APK-ja e vjetruar për të cilën `OFFLINE-BUILD.md` paralajmëron |
-| P3 | **21 nga 41 ekrane janë placeholder** (11 × 162 bajt + 10 ≈ 1.1 KB) dhe **të gjitha janë të regjistruara në navigim** (`App.tsx` rreshtat 181–222) ⇒ rrugë që çojnë në ekran bosh |
+| P3 | **18 nga 41 ekrane mbeten placeholder** dhe **të gjitha janë të regjistruara në navigim** (`App.tsx` rreshtat 181–222) ⇒ rrugë që çojnë në ekran bosh |
 
-Ekranet placeholder (162 bajt): `InsuranceScreen`, `VideoVerificationScreen`,
+Ekranet bosh (10 × 162 bajt): `InsuranceScreen`, `VideoVerificationScreen`,
 `ConformitySheetScreen`, `FavoriteUstaiScreen`, `MaintenancePlansScreen`,
-`UstaiAnalyticsScreen`, `VerificationUploadScreen`, `MaterialSuppliersScreen`,
-`MyMaintenanceSubscriptionsScreen`, `BeforeAfterPhotosScreen`, `AddonPaymentScreen`.
+`UstaiAnalyticsScreen`, `MaterialSuppliersScreen`, `MyMaintenanceSubscriptionsScreen`,
+`BeforeAfterPhotosScreen`, `AddonPaymentScreen`.
+
+Ekranet "në zhvillim" (8 ≈ 1.1 KB): `AIScanScreen`, `ClientMatchPaymentScreen`,
+`CommissionPaymentScreen`, `SponsorListingScreen`, `RefundRequestScreen`,
+`InstantBookScreen`, `InstantBookIncomingScreen`, `AIBathroomPlannerScreen`.
 
 ## 5. Rregulla pune (mos i shkel)
 

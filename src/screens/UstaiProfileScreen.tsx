@@ -48,6 +48,9 @@ export default function UstaiProfileScreen({ navigation }: any) {
       <ContactPreferenceToggle />
 
       <View style={styles.menu}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('VerifikoIdentitetin')}>
+          <Text style={styles.menuText}>✅ Verifiko identitetin</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Referimet')}>
           <Text style={styles.menuText}>👫 Fto një usta (Fito Pikë)</Text>
         </TouchableOpacity>

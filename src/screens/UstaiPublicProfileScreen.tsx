@@ -78,6 +78,13 @@ export default function UstaiPublicProfileScreen({ route, navigation }: any) {
       >
         <Text style={styles.btnText}>Kontakt Usta-in</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.raportoBtn}
+        onPress={() => navigation.navigate('RaportoPerdorues', { raportuarId: profile.user_id })}
+      >
+        <Text style={styles.raportoTeksti}>🚩 Raporto këtë ustai</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -103,5 +110,7 @@ const styles = StyleSheet.create({
   reviewYje: { fontSize: 12 },
   reviewKoment: { color: NGJYRAT.tekstiZbehur, fontSize: 14, fontStyle: 'italic' },
   btn: { backgroundColor: NGJYRAT.primare, margin: 16, padding: 18, borderRadius: 12, alignItems: 'center' },
-  btnText: { color: '#fff', fontWeight: '800', fontSize: 16 }
+  btnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  raportoBtn: { marginHorizontal: 16, marginBottom: 24, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: NGJYRAT.gabim, alignItems: 'center' },
+  raportoTeksti: { color: NGJYRAT.gabim, fontWeight: '700' }
 });
