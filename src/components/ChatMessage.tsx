@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { NGJYRAT } from '../theme/colors';
 
 interface ChatMessageProps {
   sender: 'client' | 'ustai';
@@ -16,9 +17,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ sender, message, times
 
   return (
     <View style={styles.container}>
-      <Text style={styles.avatar}>{sender.charAt(0)}</Text>
+      <Text style={[styles.avatar, isClient && styles.avatarClient]}>{sender.charAt(0)}</Text>
       <View style={[styles.bubble, isClient ? styles.bubbleClient : styles.bubbleUstai]}>
-        <Text style={styles.text}>{message}</Text>
+        <Text style={[styles.text, isClient && styles.textClient]}>{message}</Text>
       </View>
       <Text style={styles.time}>{timestamp}</Text>
       {onPress && (
@@ -44,8 +45,8 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#1B4B43',
-    color: '#fff',
+    backgroundColor: NGJYRAT.sfondiKarte,
+    color: NGJYRAT.tekstiZbehur,
     fontWeight: 'bold',
     fontSize: 12,
     marginRight: 12,
@@ -54,27 +55,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  avatarClient: {
+    backgroundColor: NGJYRAT.primare,
+    color: '#000000',
+  },
   bubble: {
     padding: 12,
     borderRadius: 18,
     maxWidth: '75%',
   },
   bubbleClient: {
-    backgroundColor: '#1B4B43',
-    color: '#fff',
+    backgroundColor: NGJYRAT.primare,
   },
   bubbleUstai: {
-    backgroundColor: '#E0DDD5',
-    color: '#1B4B43',
+    backgroundColor: NGJYRAT.sfondiKarte,
+    borderWidth: 1,
+    borderColor: NGJYRAT.kufiri,
   },
   text: {
     fontSize: 14,
     lineHeight: 18,
+    color: NGJYRAT.teksti,
+  },
+  textClient: {
+    color: '#000000',
   },
   time: {
     marginTop: 4,
     fontSize: 10,
-    color: '#666',
+    color: NGJYRAT.tekstiShumeZbehur,
     marginHorizontal: 6,
   },
   replyBtn: {

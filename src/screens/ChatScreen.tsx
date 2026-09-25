@@ -2,6 +2,7 @@
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
 import { pb } from '../lib/pocketbase';
 import { NGJYRAT } from '../theme/colors';
+import { ChatMessage } from '../components/ChatMessage';
 
 export default function ChatScreen({ route }: any) {
   const { jobId, bidId, marresiId } = route.params;
@@ -67,9 +68,11 @@ export default function ChatScreen({ route }: any) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 16 }}
         renderItem={({ item }) => (
-          <View style={[styles.flluska, item.derguesi_id === imiId ? styles.flluskaIme : styles.flluskaTjeter]}>
-            <Text style={item.derguesi_id === imiId ? { color: '#fff' } : { color: '#000' }}>{item.teksti}</Text>
-          </View>
+          <ChatMessage
+            sender={item.derguesi_id === imiId ? 'client' : 'ustai'}
+            message={item.teksti}
+            timestamp={new Date(item.created).toLocaleTimeString('sq-AL', { hour: '2-digit', minute: '2-digit' })}
+          />
         )}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
       />
@@ -92,9 +95,6 @@ export default function ChatScreen({ route }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: NGJYRAT.sfondi },
-  flluska: { padding: 12, borderRadius: 14, marginBottom: 8, maxWidth: '75%' },
-  flluskaIme: { backgroundColor: NGJYRAT.primare, alignSelf: 'flex-end' },
-  flluskaTjeter: { backgroundColor: NGJYRAT.sfondiKarte, alignSelf: 'flex-start' },
   inputRow: { flexDirection: 'row', padding: 12, borderTopWidth: 1, borderColor: NGJYRAT.kufiri },
   input: { color: NGJYRAT.teksti, backgroundColor: NGJYRAT.sfondiKarte, flex: 1, borderWidth: 1, borderColor: NGJYRAT.kufiri, borderRadius: 20, paddingHorizontal: 16, marginRight: 8 },
   dergoBtn: { backgroundColor: NGJYRAT.primare, paddingHorizontal: 18, justifyContent: 'center', borderRadius: 20 },

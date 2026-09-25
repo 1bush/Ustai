@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { pb } from '../lib/pocketbase';
 import { NGJYRAT } from '../theme/colors';
+import ContactPreferenceToggle from '../components/ContactPreferenceToggle';
 
 export default function UstaiProfileScreen({ navigation }: any) {
   const [profile, setProfile] = React.useState<any>(null);
@@ -43,6 +44,8 @@ export default function UstaiProfileScreen({ navigation }: any) {
           </View>
         </View>
       </View>
+
+      <ContactPreferenceToggle />
 
       <View style={styles.menu}>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Referimet')}>

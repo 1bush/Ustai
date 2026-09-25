@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Alert }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { pb } from '../lib/pocketbase';
 import { NGJYRAT } from '../theme/colors';
+import VerifiedHistoryBadge from '../components/VerifiedHistoryBadge';
+import UstaiOfMonthBanner from '../components/UstaiOfMonthBanner';
 
 export default function UstaiPublicProfileScreen({ route, navigation }: any) {
   const { profile } = route.params;
@@ -44,9 +46,12 @@ export default function UstaiPublicProfileScreen({ route, navigation }: any) {
           </View>
         )}
 
+        <UstaiOfMonthBanner ustaiId={profile.id} />
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Eksperienca</Text>
           <Text style={styles.tekst}>{profile.completed_jobs} punë të përfunduara</Text>
+          <VerifiedHistoryBadge ustaiId={profile.id} />
         </View>
 
         <View style={styles.section}>

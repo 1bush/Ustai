@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { pb } from '@/lib/pocketbase';
 import { NGJYRAT } from '../theme/colors';
+import PlatformAdBanner from '../components/PlatformAdBanner';
 
 export default function AvailableJobsScreen({ navigation }: any) {
   const [punet, setPunet] = useState<any[]>([]);
@@ -69,6 +70,7 @@ export default function AvailableJobsScreen({ navigation }: any) {
             <Text style={styles.detaje}>Afati: {item.afati_perfundimit}</Text>
           </TouchableOpacity>
         )}
+        ListHeaderComponent={<PlatformAdBanner vendosja="banner_kryesor" />}
         ListEmptyComponent={<Text style={styles.bosh}>Nuk ka punë të reja momentalisht.</Text>}
         contentContainerStyle={{ padding: 16 }}
       />
