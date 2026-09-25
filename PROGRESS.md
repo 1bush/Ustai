@@ -41,19 +41,25 @@ assets/logo-master.png → python scripts/generate-icons.py
 4. **Commit i punës së papërfunduar**: `App.tsx`, `src/lib/pocketbase.ts` (hibrid mock/real
    + proxy i offline queue), `src/lib/pushNotifications.ts` (try/catch), `.env.example`,
    3 drawable apple të rigjeneruara.
+5. **P1 — `README.md` u rishkrua i plotë.** 5 mospërputhje u rregulluan (RN 0.74.5 → **0.86.2**;
+   PocketBase server → mock hibrid; Groq → hequr; Google Maps → hequr; Mapbox → **Nominatim**).
+   Gjithashtu **kredencialet admin `Bush`/`BUSH1` u hoqën** — ishin të shkruara në README ndërsa
+   paneli autentikohet me `_superusers` pa kredenciale të hardkoduar. README e vjetër u arkivua
+   në `_arkiv-ustai-logs\README.md.old`.
+6. **P1 — `ErrorBoundary` u lidh në `App.tsx`.** Komponenti ekzistonte por **nuk përdorej**;
+   tani mbështjell `SafeAreaProvider` ⇒ app-i nuk bie më në ekran të zi. Verifikuar me
+   `tsc --noEmit --skipLibCheck` → **0 gabime**.
 
 ## 4. Hapa të hapur (të audituar, të verifikuar, jo të bërë)
 
 | Prioritet | Problemi |
 |---|---|
-| P1 | `README.md` ka 5 mospërputhje: "RN 0.74.5" (është 0.86.2), udhëzime për **PocketBase server** (është mock), `GROQ_API_KEY` (hequr), "Google Maps në app.json" (hequr), "Mapbox" (është Nominatim) |
-| P1 | `src/components/ErrorBoundary.tsx` **ekziston por nuk përdoret** në `App.tsx` ⇒ app-i pa mbrojtje nga rrëzimet |
-| P2 | **8 nga 10 komponentë janë orphan**: `ChatMessage`, `ContactPreferenceToggle`, `ErrorBoundary`, `JobStatusTimeline`, `PlatformAdBanner`, `UstaiOfMonthBanner`, `VerifiedHistoryBadge`, `WPGoMap` (përdoren vetëm `FairPriceEstimate` + `FreeMap`) |
+| P2 | **7 nga 10 komponentë mbeten orphan** (përdoren vetëm `FairPriceEstimate`, `FreeMap` dhe `ErrorBoundary`): `ChatMessage`, `ContactPreferenceToggle`, `JobStatusTimeline`, `PlatformAdBanner`, `UstaiOfMonthBanner`, `VerifiedHistoryBadge`, `WPGoMap` |
 | P2 | `admin-dashboard/` është **fund qorrsokak**: lidhet me PocketBase real dhe lexon/shkruan `reports` + `verification_documents`, koleksione që aplikacioni **nuk i shkruan kurrë** |
 | P2 | Koleksione të dhënash **pa konsumator UI**: `platform_ads`, `ustai_of_month`, `ustai_historiku_verifikuar` (komponentët përkatës janë orphan) |
 | P2 | `EXPO_PUBLIC_WP_GO_MAP_TOKEN` është në `.env` dhe `OFFLINE-BUILD.md` dokumenton `cloud.wpgmaps.com`, por `WPGoMap.tsx` nuk përdoret kurrë |
 | P2 | 6 folder `ustai*` të duplikuar në disk; `Desktop\ustai-app-release.apk` (111 MB, 16/09) është APK-ja e vjetruar për të cilën `OFFLINE-BUILD.md` paralajmëron |
-| P3 | **21 nga 41 ekrane janë placeholder** (11 × 162 bajt + 10 ≈ 1.1 KB) dhe **të gjitha janë të regjistruara në navigim** (`App.tsx` rreshtat 179–220) ⇒ rrugë që çojnë në ekran bosh |
+| P3 | **21 nga 41 ekrane janë placeholder** (11 × 162 bajt + 10 ≈ 1.1 KB) dhe **të gjitha janë të regjistruara në navigim** (`App.tsx` rreshtat 181–222) ⇒ rrugë që çojnë në ekran bosh |
 
 Ekranet placeholder (162 bajt): `InsuranceScreen`, `VideoVerificationScreen`,
 `ConformitySheetScreen`, `FavoriteUstaiScreen`, `MaintenancePlansScreen`,

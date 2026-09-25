@@ -1,10 +1,14 @@
-﻿# Ustai-Im - Aplikacioni për Ustallarë dhe Klientë
+# Ustai-Im — Aplikacioni për Ustallarë dhe Klientë
 
-Aplikacion mobil React Native me Expo që lidh ustallarët me klientët në tregun shqiptar. Përfshin funksionalitete të avancuara AI, pagesa me Stripe, dhe një panel admin.
+Aplikacion mobil React Native (Expo) që lidh ustallarët me klientët në tregun shqiptar.
+Përfshin AI lokale (offline), pagesa me Stripe dhe një panel admin të veçantë.
+
+> **Gjendja aktuale e projektit, hapat e hapur dhe gotcha-t e build-it: shiko
+> [`PROGRESS.md`](./PROGRESS.md). Lexoje para se të fillosh punën.**
 
 ## 📋 Përmbledhje
 
-**Ustai-Im** është një platformë dy-façe që lejon:
+Platformë dy-façe që lejon:
 - **Klientët** të postojnë punë dhe të gjejnë ustallarë të kualifikuar
 - **Ustallarët** të shohin punë të disponueshme dhe të bëjnë oferta
 - **Admin-panelin** për menaxhimin e përdoruesve, konflikteve dhe verifikimeve
@@ -12,220 +16,222 @@ Aplikacion mobil React Native me Expo që lidh ustallarët me klientët në treg
 ## 🛠️ Tech Stack
 
 ### Mobile App
-- **React Native** 0.74.5 me Expo 57
-- **TypeScript** me strict mode
-- **Navigation**: React Navigation (Native Stack)
-- **Backend**: PocketBase — HEQUR (mock lokal në `src/lib/pocketbase.ts`, pa rrjet)
-- **Payments**: Stripe React Native
-- **Maps**: React Native Maps + Mapbox Geocoding
-- **Notifications**: Expo Notifications
-- **AI Services**: AI lokale offline (`src/lib/localAI.ts`) — pa server, pa API key, pa internet
+| Komponenti | Vlera |
+|---|---|
+| React Native | **0.86.2** me Expo **57** |
+| React | 19.2.3 |
+| TypeScript | strict mode |
+| Navigation | React Navigation (Native Stack) |
+| Backend | `src/lib/pocketbase.ts` — **hibrid**: mock lokal (AsyncStorage) ose PocketBase real |
+| Payments | Stripe React Native |
+| Harta | `react-native-maps` + **Nominatim (OpenStreetMap)** për geocoding — jo Mapbox |
+| Notifications | Expo Notifications |
+| AI | `src/lib/localAI.ts` — **lokale/offline**, pa server, pa API key, pa internet |
+| Alias rrugësh | `@/*` → `src/*` (`babel.config.js` + `tsconfig.json`) |
 
 ### Admin Dashboard
-- HTML/JavaScript statik me PocketBase SDK
-- Panel admin për menaxhim
+- HTML/JavaScript statik me PocketBase SDK (CDN)
+- Kërkon një **PocketBase real** — shiko [`PROGRESS.md`](./PROGRESS.md) (është i shkëputur nga app-i)
 
 ## 📁 Struktura e Projektit
-ustai-app claude/ ├── src/ │ ├── screens/ # Të gjitha ekrane e aplikacionit │ ├── components/ # Komponente të përdorura │ ├── lib/ # Shërbime thelbësore │ │ ├── pocketbase.ts # Mock lokal (serveri u hoq) │ │ ├── localAI.ts # AI lokale offline (Ollama u hoq) │ │ ├── aiVisionService.ts # AI për analiza vizuale │ │ ├── aiMatching.ts # AI për përputhje ustallarësh │ │ ├── geocoding.ts # Shërbimi Mapbox │ │ ├── pushNotifications.ts # Njoftime push │ │ └── seedData.ts # Të dhëna fillestare │ └── theme/ # Tema dhe ngjyrat ├── admin-dashboard/ # Panel admin (HTML statik) ├── App.tsx # Hyrja kryesore dhe navigimi ├── app.json # Konfigurimi Expo ├── package.json # Varësitë └── tsconfig.json # Konfigurimi TypeScript
 
+```
+ustai-app claude/
+├── index.js                  # Pika e hyrjes (registerRootComponent)
+├── App.tsx                   # Navigimi + tema globale (rregjistron 41 ekrane)
+├── app.json                  # Konfigurimi Expo (ikona, plugin-e, Android)
+├── babel.config.js           # Alias @ → ./src
+├── metro.config.js           # Default i Expo
+├── tsconfig.json             # strict + paths @/*
+├── eas.json                  # Profilet EAS
+├── build_android.bat         # Build offline (bundle + assembleRelease)
+├── AGENTS.md                 # Rregullat e repo-s për agjentët
+├── PROGRESS.md               # Gjendja aktuale / handoff
+├── OFFLINE-BUILD.md          # Si ndërtohet APK pa Metro
+├── src/
+│   ├── screens/              # 41 ekrane
+│   ├── components/           # 10 komponentë të përbashkët
+│   ├── lib/                  # Shërbimet thelbësore
+│   ├── theme/colors.ts       # NGJYRAT (Dark)
+│   └── assets/               # ikonat google/apple @1x/2x/3x (të gjeneruara)
+├── assets/                   # ikonat e app-it (të gjeneruara nga logo-master.png)
+├── scripts/                  # generate-icons.py + icons_lib.py
+├── docs/IKONAT.md            # Si gjenerohen ikonat
+├── admin-dashboard/          # Panel admin (HTML statik)
+├── android/                  # Prebuild native (i gjeneruar)
+└── node_modules/
+```
 
-
-
-## 🚀 Instalimi dhe Konfigurimi
+## 🚀 Instalimi
 
 ### Parakushtet
 - Node.js 18+
-- Expo CLI
-- Android Studio (për Android)
-- PocketBase server
+- Android Studio (për build Android)
+- **Nuk nevojitet** server PocketBase — app-i punon me mock lokal nga kutia
 
-### Hapat e Instalimit
+### Hapat
 
-1. **Klononi projektin**
 ```bash
-git clone <repository-url>
-cd ustai-app-claude
-Instaloni varësitë
-
-
-
-bash
+git clone https://github.com/1bush/Ustai.git
+cd "ustai-app claude"
 npm install
-Konfiguroni PocketBase
-Shkarkoni PocketBase nga https://pocketbase.io/docs/
-Nisni serverin: ./pocketbase serve
-Krijoni koleksionet e nevojshme (shih strukturën e databazës)
-Konfiguroni variablat e mjedisit Krijoni .env në rrënjën e projektit:
-
-
-env
-EXPO_PUBLIC_POCKETBASE_URL=http://127.0.0.1:8090
-EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_your_stripe_key
-EXPO_PUBLIC_GROQ_API_KEY=gsk_your_groq_key
-EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN=pk_your_mapbox_token
-Konfiguroni Google Maps
-Në app.json, zëvendësoni VENDOS_GOOGLE_MAPS_API_KEY_KETU me API key-in tuaj
-Nisni projektin
-
-
-
-bash
 npm start
-Për Android:
+```
 
+### Variablat e mjedisit
 
+Kopjo `.env.example` në `.env`. Të gjitha janë **opsionale** për aplikacionin offline:
 
+| Variabla | Efekti |
+|---|---|
+| `EXPO_PUBLIC_POCKETBASE_URL` | Bosh ⇒ **mock lokal**. Plotësuar (p.sh. `http://127.0.0.1:8090`) ⇒ PocketBase real |
+| `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Çelësi publik i Stripe |
+| `EXPO_PUBLIC_WP_GO_MAP_TOKEN` | Token për embed-in WP Go Map |
 
-bash
-npm run android
-🎨 Tema dhe Ngjyrat
-Aplikacioni përdor Dark Mode me ngjyrat e përcaktuara në src/theme/colors.ts:
+> `.env` **nuk gjurmohet në git** dhe përmban çelësa — mos e commit-o.
 
+## 📱 Ekrane
 
+Rregjistrohen të gjitha në `App.tsx`. ⚠️ = **placeholder / në ndërtim** (shih `PROGRESS.md`).
 
-typescript
+**Auth** — `LoginScreen` · `RegisterScreen` · `VerifyOTPScreen` · `SelectCategoryScreen`
+
+**Klient** — `JobPostScreen` · `JobBidsScreen` · `BrowseUstajteScreen` · `ClientProfileScreen`
+· ⚠️`ClientMatchPaymentScreen` · ⚠️`RefundRequestScreen` · ⚠️`ReportUserScreen`
+
+**Ustai** — `AvailableJobsScreen` · `MyBidsScreen` · `UstaiProfileScreen`
+· `UstaiPublicProfileScreen` · ⚠️`UstaiAnalyticsScreen` · ⚠️`CommissionPaymentScreen`
+· ⚠️`VerificationUploadScreen` · ⚠️`VideoVerificationScreen` · ⚠️`InsuranceScreen`
+· ⚠️`InstantBookScreen` · ⚠️`InstantBookIncomingScreen` · ⚠️`AddonPaymentScreen`
+
+**Puna** — `RatingScreen` · `ChatScreen` · `ContactMapScreen` · ⚠️`JobTimelineScreen`
+· ⚠️`BeforeAfterPhotosScreen` · ⚠️`ConformitySheetScreen` · ⚠️`MaintenancePlansScreen`
+· ⚠️`MyMaintenanceSubscriptionsScreen` · ⚠️`MaterialSuppliersScreen` · ⚠️`FavoriteUstaiScreen`
+· ⚠️`SponsorListingScreen`
+
+**AI** — `AIPreventivScreen` · `AIMatjaScreen` · `AIRoomPlannerScreen`
+· ⚠️`AIScanScreen` · ⚠️`AIBathroomPlannerScreen`
+
+**Të tjera** — `ReferralScreen` · `ContactMapScreen` · `AdminTestScreen`
+
+## 🧠 Shërbimet AI (lokale / offline)
+
+| Moduli | Roli |
+|---|---|
+| `lib/localAI.ts` | `thirrAILokale()` — të dhëna demo deterministe, pa rrjet (zëvendëson Ollama) |
+| `lib/aiVisionService.ts` | Validuesit e përgjigjeve AI + analizë foto, planifikim hapësirash, skanim |
+| `lib/aiMatching.ts` | Përputhja ustai ↔ klient dhe rekomandime |
+| `lib/aiDiagnosis.ts` | Diagnozë problemesh nga foto + kategorizim automatik |
+| `lib/aiScheduling.ts` | Planifikimi i termineve |
+
+## 💾 Struktura e të Dhënave
+
+App-i përdor `pb.collection('...')` me **mock lokal** (AsyncStorage) si default;
+me `EXPO_PUBLIC_POCKETBASE_URL` kalon automatikisht në PocketBase real.
+
+| Koleksioni | Përdoret nga app-i |
+|---|---|
+| `users`, `profiles`, `categories` | ✅ |
+| `jobs`, `bids`, `job_timeline`, `work_sessions`, `work_updates` | ✅ |
+| `messages`, `reviews`, `referrals`, `scheduling_slots` | ✅ |
+| `ustai_locations`, `ustai_of_month`, `ustai_historiku_verifikuar` | ✅ (UI pjesërisht) |
+| `device_tokens`, `notification_*`, `platform_ads` | ✅ |
+| `verification_documents`, `reports` | ❌ **vetëm admin-dashboard** (app-i nuk i shkruan) |
+
+## 🔧 Komandat e Build
+
+```bash
+# Zhvillim
+npm start                    # Expo dev server
+npm run android              # Nis në Android emulator/device
+npm run ios                  # Nis në iOS simulator
+
+# Ikona (nga assets/logo-master.png → assets/, src/assets/, android res/)
+npm run icons
+
+# Build Android
+npm run bundle:android       # Vetëm JS bundle → android/app/src/main/assets/
+npm run build:apk:debug      # APK debug (offline, pa Metro)
+npm run build:android        # APK release (clean + bundle + assembleRelease)
+npm run build:apk            # Alias i build:android
+
+# Pastrim
+npm run clean:android        # Ndal gradle + clean
+npm run clean:full           # Pastrim i plotë (build + cache)
+```
+
+Detajet e build-it offline: [`OFFLINE-BUILD.md`](./OFFLINE-BUILD.md).
+
+## 🎛️ Admin Dashboard
+
+`admin-dashboard/index.html` — faqe statike që lidhet me PocketBase.
+
+- URL-i i serverit konfigurohet në `CONFIG.pocketbaseUrl` brenda fajllit (default `http://127.0.0.1:8090`)
+- Autentikimi bëhet kundrejt koleksionit `_superusers` me kredencialet e tua
+  (**nuk ka kredenciale të hardkoduar në kod**)
+- Të dhënat që mirëmban: `profiles`, `categories`, `verification_documents`, `reports`
+
+> ⚠️ Paneli lexon koleksione që aplikacioni mobil nuk i shkruan aktualisht.
+> Shiko hapin P2 në [`PROGRESS.md`](./PROGRESS.md).
+
+## 🎨 Tema
+
+Dark Mode, ngjyrat në `src/theme/colors.ts`:
+
+```typescript
 {
   primare: '#FF7A1A',        // Portokalli
-  sfondi: '#0A0A0A',        // E zezë
-  sfondiKarte: '#141414',   // Gri e errët
-  teksti: '#FFFFFF',       // E bardhë
-  tekstiZbehur: '#9CA3AF', // Gri
-  paralajmerim: '#FFB020',  // E verdhë
-  gabim: '#E5484D',         // E kuqe
-  sukses: '#34C759'         // E gjelbër
+  sfondi: '#0A0A0A',         // E zezë
+  sfondiKarte: '#141414',    // Gri e errët
+  teksti: '#FFFFFF',
+  tekstiZbehur: '#9CA3AF',
+  tekstiShumeZbehur: '#6B7280',
+  kufiri: '#2A2A2A',
+  paralajmerim: '#FFB020',
+  gabim: '#E5484D',
+  sukses: '#34C759'
 }
-📱 Ekrane Kryesore
-Auth Flow
-StartScreen: Zgjedhja roli (Klient/Ustai)
-RegisterScreen: Regjistrimi me numër telefon
-VerifyOTPScreen: Verifikimi OTP
-SelectCategoryScreen: Zgjedhja kategorisë
-Klient
-JobPostScreen: Postimi i punëve me AI auto-fill
-JobBidsScreen: Shikimi i ofertave
-BrowseUstajteScreen: Kërkimi i ustallarëve
-ClientProfileScreen: Profili i klientit
-Ustai
-AvailableJobsScreen: Shikimi i punëve të disponueshme
-MyBidsScreen: Ofertat e mia
-UstaiProfileScreen: Profili i ustait
-UstaiAnalyticsScreen: Analitika
-AI Features
-AIPreventivScreen: Gjenerim preventivi me foto
-AIScanScreen: Skanim i hapësirave
-AIBathroomPlannerScreen: Planifikim tualeti
-AIRoomPlannerScreen: Planifikim hapësirash
-Extra Features
-ChatScreen: Mesazheri
-RatingScreen: Vlerësimi
-InstantBookScreen: Rezervim i menjëhershëm
-MaintenancePlansScreen: Planet e mirëmbajtjes
-🧠 Shërbimet AI
-AI Lokale / Offline Integration
-Ollama u hoq nga projekti. AI-ja ofrohet nga src/lib/localAI.ts, që kthen te dhena demo deterministe pa asnje thirrje rrjeti. Projekti testohet pa server, pa internet dhe pa API key.
+```
 
-AI Vision Service (src/lib/aiVisionService.ts)
-Analizë foto për preventiv
-Planifikim hapësirash (kuzhinë, dhomë gjumi, tualet, kopsht)
-Skanim i dhomave
-AI Matching (src/lib/aiMatching.ts)
-Gjetja e ustallarëve më të përshtatshëm
-Rekomandime të personalizuara
-AI Diagnosis (src/lib/aiDiagnosis.ts)
-Analizë problemeve nga foto
-Kategorizim automatik
-💾 Struktura e Databazës (PocketBase)
-Koleksionet Kryesore
-users
+## 🚀 Deployimi Android
 
-id, email, password, pushToken
-profiles
+```bash
+npm run build:android
+```
 
-id, user_id, emri, telefon, role (klient/ustai)
-category_id, rating, eshte_i_verifikuar
-eshte_i_bllokuar, arsyeja_bllokimit
-categories
+APK-ja del në `android/app/build/outputs/apk/release/app-release.apk`.
 
-id, emri, ikona
-jobs
+> ⚠️ **Mos ekzekuto `npx expo prebuild --clean`** — humbin `debuggableVariants = []`
+> dhe `useDevSupport = false`, dhe APK-ja kërkon përsëri Metro-n. Detajet:
+> [`OFFLINE-BUILD.md`](./OFFLINE-BUILD.md).
 
-id, klient_id, category_id, pershkrimi
-sipërfaqja_m2, afati_perfundimit
-vendndodhja (JSON), status, eshte_urgjente
-fotot (array)
-bids
+## 🔐 Siguria
 
-id, job_id, ustai_id, cmimi, pershkrimi
-verification_documents
+- Sesioni ruhet lokalisht në `AsyncStorage`
+- Stripe për pagesa
+- `.env` nuk gjurmohet në git (përmban çelësa)
+- Autentikimi real kërkon `EXPO_PUBLIC_POCKETBASE_URL`; mock-u lokal hedh gabim
 
-id, ustai_id, dokumenti_url, status
-reports
+## 📝 Konventat e Kodimit
 
-id, reporter_id, job_id, status
-🔧 Komandat e Build
-Zhvillim
+- **TypeScript strict** — tipet eksplicite
+- **Alias**: `@/*` për `src/*`
+- **Emërtimi**: entitetet e biznesit në shqip (`ustai`, `klient`, `punë`), komponentët PascalCase
+- **Tema**: gjithmonë `NGJYRAT`, pa ngjyra të hardkoduara
+- **Assets**: nuk modifikohen manualisht — rigjenerohen nga `scripts/`
 
+## 🐛 Debugim
 
-bash
-npm start              # Nis Expo Dev Server
-npm run android        # Nis në Android emulator/device
-npm run ios            # Nis në iOS simulator
-Build Android
+| Problemi | Zgjidhja |
+|---|---|
+| "Could not connect to development server" | Kontrollo `debuggableVariants = []` + `useDevSupport = false` (shih `OFFLINE-BUILD.md`) |
+| Ekranet shfaqin të dhëna boshe | E pritshme — mock-u lokal. Plotëso `EXPO_PUBLIC_POCKETBASE_URL` për të dhëna reale |
+| AI nuk kthen përgjigje | AI-ja është lokale (`localAI.ts`); nuk ka server për të kontrolluar |
+| Ikona e gabuar në APK | `npm run icons`, pastaj rindërto |
 
+## 📄 Licenca
 
-bash
-npm run prebuild       # Sinkronizim me native files
-npm run build:android  # Build APK release
-npm run build:android-debug  # Build APK debug
-Pastrim
-
-
-bash
-npm run clean:android  # Pastron build folder
-npm run clean:full     # Pastrim i plotë
-🎛️ Admin Dashboard
-Panel admin gjendet në admin-dashboard/index.html:
-
-Kredencialet Default:
-
-Përdoruesi: Bush
-Fjalëkalimi: BUSH1
-Funksionalitete:
-
-Përmbledhje statistikash
-Menaxhim i kategorive
-Verifikim dokumentesh
-Menaxhim konfliktesh
-Bllokim përdoruesish
-🔐 Siguria
-PocketBase për autentikim dhe autorizim
-AsyncStorage për ruajtjen e sesionit
-Stripe për pagesa të sigurta
-Verifikim dokumentesh për ustallarë
-📝 Konventa të Kodimit
-TypeScript strict mode: Të gjitha tipet duhet të jenë të përcaktuara
-Path aliases: Përdorni @/* për src/*
-Naming: Entitetet e biznesit në shqip (ustai, klient, punë)
-Theme: Gjithmonë përdorni ngjyrat nga NGJYRAT në vend të hardcoding
-🚀 Deployimi
-Android APK
-Konfiguroni app.json me versionin e duhur
-Nisni npm run build:android
-APK gjendet në android/app/build/outputs/apk/release/
-PocketBase Deploy
-Serveri PocketBase është hequr — src/lib/pocketbase.ts është mock lokal (pa rrjet).
-Për ta rikthyer serverin real: Copy-Item src/lib/pocketbase.ts.REAL.BAK src/lib/pocketbase.ts -Force
-🐛 Debugim
-Për probleme me PocketBase:
-
-Serveri është hequr; src/lib/pocketbase.ts është mock lokal që kthen të dhëna boshe.
-Nëse një ekran pritej të shfaqte të dhëna reale, rikthe serverin me skedarin .REAL.BAK.
-Për probleme me AI:
-
-AI-ja është lokale (src/lib/localAI.ts) — nuk ka server për të kontrolluar.
-Kontrollo logcat për linjën "[localAI]" për të verifikuar që thirrja u trajtua lokalisht.
-📞 Kontakt
-Për pyetje ose kontribute, kontaktoni me ekipin e zhvillimit.
-
-📄 Licenca
 Ky projekt është pronë private. Të gjitha të drejtat e rezervuara.
+
+
+

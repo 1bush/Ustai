@@ -7,6 +7,7 @@ import { StripeProvider } from '@stripe/stripe-react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { NGJYRAT } from './src/theme/colors';
+import ErrorBoundary from './src/components/ErrorBoundary';
 
 // ═══ AUTH ═══
 import LoginScreen from './src/screens/LoginScreen';
@@ -172,56 +173,58 @@ export default function App() {
   if (!isReady) return null;
 
   return (
-    <SafeAreaProvider>
-      <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-        <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: NGJYRAT.sfondi } }}>
-            <Stack.Screen name="Start" component={StartScreen} />
-            <Stack.Screen name="Hyrje" component={LoginScreen} />
-            <Stack.Screen name="PanelAdminTest" component={AdminTestScreen} />
-            <Stack.Screen name="Regjistrimi" component={RegisterScreen} />
-            <Stack.Screen name="VerifikoOTP" component={VerifyOTPScreen} />
-            <Stack.Screen name="ZgjidhKategori" component={SelectCategoryScreen} />
-            <Stack.Screen name="TarifaPerputhjes" component={ClientMatchPaymentScreen} />
-            <Stack.Screen name="PagesaShtesat" component={AddonPaymentScreen} />
-            <Stack.Screen name="FaqjaKlientit" component={JobPostScreen} />
-            <Stack.Screen name="FaqjaUstait" component={AvailableJobsScreen} />
-            <Stack.Screen name="OfertatEPunes" component={JobBidsScreen} />
-            <Stack.Screen name="Vleresimi" component={RatingScreen} />
-            <Stack.Screen name="ProfiliUstait" component={UstaiProfileScreen} />
-            <Stack.Screen name="GjejUstai" component={BrowseUstajteScreen} />
-            <Stack.Screen name="Chat" component={ChatScreen} />
-            <Stack.Screen name="VerifikoIdentitetin" component={VerificationUploadScreen} />
-            <Stack.Screen name="RaportoPerdorues" component={ReportUserScreen} />
-            <Stack.Screen name="Referimet" component={ReferralScreen} />
-            <Stack.Screen name="Sponsorizim" component={SponsorListingScreen} />
-            <Stack.Screen name="PagesaKomisioni" component={CommissionPaymentScreen} />
-            <Stack.Screen name="OfertatEMia" component={MyBidsScreen} />
-            <Stack.Screen name="FotoParaPas" component={BeforeAfterPhotosScreen} />
-            <Stack.Screen name="UstallaretEMi" component={FavoriteUstaiScreen} />
-            <Stack.Screen name="AnalitikaIme" component={UstaiAnalyticsScreen} />
-            <Stack.Screen name="Sigurimi" component={InsuranceScreen} />
-            <Stack.Screen name="VerifikimVideo" component={VideoVerificationScreen} />
-            <Stack.Screen name="TimelinePunes" component={JobTimelineScreen} />
-            <Stack.Screen name="FletaKonformitetit" component={ConformitySheetScreen} />
-            <Stack.Screen name="FurnitoretMaterialeve" component={MaterialSuppliersScreen} />
-            <Stack.Screen name="ProfiliKlientit" component={ClientProfileScreen} />
-            <Stack.Screen name="ProfiliPublikUstait" component={UstaiPublicProfileScreen} />
-            <Stack.Screen name="InstantBook" component={InstantBookScreen} />
-            <Stack.Screen name="InstantBookHyrese" component={InstantBookIncomingScreen} />
-            <Stack.Screen name="PlanetMirembajtjes" component={MaintenancePlansScreen} />
-            <Stack.Screen name="AbonimetEMiaMirembajtje" component={MyMaintenanceSubscriptionsScreen} />
-            <Stack.Screen name="KerkoRimbursim" component={RefundRequestScreen} />
-            <Stack.Screen name="HartaKontakti" component={ContactMapScreen} />
-            <Stack.Screen name="AIPreventiv" component={AIPreventivScreen} />
-            <Stack.Screen name="AISkanim" component={AIScanScreen} />
-            <Stack.Screen name="AIPlanifikuesTualeti" component={AIBathroomPlannerScreen} />
-            <Stack.Screen name="AIPlanifikuesHapesire" component={AIRoomPlannerScreen} />
-            <Stack.Screen name="AIMatja" component={AIMatjaScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </StripeProvider>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+          <NavigationContainer>
+            <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: NGJYRAT.sfondi } }}>
+              <Stack.Screen name="Start" component={StartScreen} />
+              <Stack.Screen name="Hyrje" component={LoginScreen} />
+              <Stack.Screen name="PanelAdminTest" component={AdminTestScreen} />
+              <Stack.Screen name="Regjistrimi" component={RegisterScreen} />
+              <Stack.Screen name="VerifikoOTP" component={VerifyOTPScreen} />
+              <Stack.Screen name="ZgjidhKategori" component={SelectCategoryScreen} />
+              <Stack.Screen name="TarifaPerputhjes" component={ClientMatchPaymentScreen} />
+              <Stack.Screen name="PagesaShtesat" component={AddonPaymentScreen} />
+              <Stack.Screen name="FaqjaKlientit" component={JobPostScreen} />
+              <Stack.Screen name="FaqjaUstait" component={AvailableJobsScreen} />
+              <Stack.Screen name="OfertatEPunes" component={JobBidsScreen} />
+              <Stack.Screen name="Vleresimi" component={RatingScreen} />
+              <Stack.Screen name="ProfiliUstait" component={UstaiProfileScreen} />
+              <Stack.Screen name="GjejUstai" component={BrowseUstajteScreen} />
+              <Stack.Screen name="Chat" component={ChatScreen} />
+              <Stack.Screen name="VerifikoIdentitetin" component={VerificationUploadScreen} />
+              <Stack.Screen name="RaportoPerdorues" component={ReportUserScreen} />
+              <Stack.Screen name="Referimet" component={ReferralScreen} />
+              <Stack.Screen name="Sponsorizim" component={SponsorListingScreen} />
+              <Stack.Screen name="PagesaKomisioni" component={CommissionPaymentScreen} />
+              <Stack.Screen name="OfertatEMia" component={MyBidsScreen} />
+              <Stack.Screen name="FotoParaPas" component={BeforeAfterPhotosScreen} />
+              <Stack.Screen name="UstallaretEMi" component={FavoriteUstaiScreen} />
+              <Stack.Screen name="AnalitikaIme" component={UstaiAnalyticsScreen} />
+              <Stack.Screen name="Sigurimi" component={InsuranceScreen} />
+              <Stack.Screen name="VerifikimVideo" component={VideoVerificationScreen} />
+              <Stack.Screen name="TimelinePunes" component={JobTimelineScreen} />
+              <Stack.Screen name="FletaKonformitetit" component={ConformitySheetScreen} />
+              <Stack.Screen name="FurnitoretMaterialeve" component={MaterialSuppliersScreen} />
+              <Stack.Screen name="ProfiliKlientit" component={ClientProfileScreen} />
+              <Stack.Screen name="ProfiliPublikUstait" component={UstaiPublicProfileScreen} />
+              <Stack.Screen name="InstantBook" component={InstantBookScreen} />
+              <Stack.Screen name="InstantBookHyrese" component={InstantBookIncomingScreen} />
+              <Stack.Screen name="PlanetMirembajtjes" component={MaintenancePlansScreen} />
+              <Stack.Screen name="AbonimetEMiaMirembajtje" component={MyMaintenanceSubscriptionsScreen} />
+              <Stack.Screen name="KerkoRimbursim" component={RefundRequestScreen} />
+              <Stack.Screen name="HartaKontakti" component={ContactMapScreen} />
+              <Stack.Screen name="AIPreventiv" component={AIPreventivScreen} />
+              <Stack.Screen name="AISkanim" component={AIScanScreen} />
+              <Stack.Screen name="AIPlanifikuesTualeti" component={AIBathroomPlannerScreen} />
+              <Stack.Screen name="AIPlanifikuesHapesire" component={AIRoomPlannerScreen} />
+              <Stack.Screen name="AIMatja" component={AIMatjaScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </StripeProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 
