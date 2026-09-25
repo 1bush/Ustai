@@ -29,3 +29,15 @@ Use the following commands for development and building:
 
 ## Commit & Pull Request Guidelines
 - Follow clear, descriptive commit messages. Maintain a clean log starting with feature-based or fix-based titles.
+
+## Gjendja aktuale & historiku (LEXO PARA SE TË FILLOSH)
+
+**`PROGRESS.md`** në rrënjë mban gjendjen e projektit: çfarë është bërë, çfarë është e
+hapurm dhe rregullat e punës. Lexoje gjithmonë në fillim të sesionit dhe **përditësoje**
+në fund të çdo sesioni me atë që ndryshoi — kështu asnjë sesion nuk ka nevojë të
+rishpjegohet nga e para.
+
+- `PROGRESS.md` — gjendja, hapat e hapur (P1/P2/P3), gotcha-t e build-it
+- `OFFLINE-BUILD.md` — si ndërtohet/testohet pa Metro dhe pa server
+- `docs/IKONAT.md` — si gjenerohen ikonat nga `assets/logo-master.png`
+
