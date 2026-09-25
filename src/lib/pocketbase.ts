@@ -1,85 +1,207 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import PocketBase from 'pocketbase';
+import Constants from 'expo-constants';
+import { enqueueMutation, isRetryableError } from './offlineQueue';
 
-/**
- * MOCK LOKAL — PocketBase është HEQUR PËRKOHËSISHT (serveri nuk punon).
- * Ky modul ruan të njëjtin API sipërfaqësor (pb + pbReady) që të mos
- * thyhet asnjë import në app, por NUK bën asnjë thirrje rrjeti.
- * Të gjitha metodat kthejnë të dhëna boshe.
- *
- * Për ta rikthyer serverin real:
- *   Copy-Item src/lib/pocketbase.ts.REAL.BAK src/lib/pocketbase.ts -Force
- */
+const STORAGE_KEY = 'pb_auth_v1';
+const configuredUrl = process.env.EXPO_PUBLIC_POCKETBASE_URL?.trim();
+const isReal = Boolean(configuredUrl);
 
-type Listener = (token: string | null, model: any) => void;
+function createPb() {
+  if (!isReal) return null;
+  const baseUrl = configuredUrl!.replace(/\/$/, '');
+  const client = new PocketBase(baseUrl);
+  if (Constants.expoConfig?.extra?.pbUrl) {
+    // The URL is already injected through EXPO_PUBLIC_POCKETBASE_URL.
+    void Constants.expoConfig.extra.pbUrl;
+  }
+  return client;
+}
+
+const realPb: PocketBase | null = createPb();
 
 class MockAuthStore {
   token: string | null = null;
   model: any = null;
-  private listeners = new Set<Listener>();
+  private listeners = new Set<(token: string | null, model: any) => void>();
 
   save(token: string, model: any) {
     this.token = token;
     this.model = model;
-    AsyncStorage.setItem('pb_auth_mock', JSON.stringify({ token, model })).catch(() => {});
-    this.listeners.forEach((l) => l(token, model));
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ token, model, mock: true })).catch((error) => {
+      console.warn('Sesioni lokal nuk u ruajt.', error);
+    });
+    this.listeners.forEach((listener) => listener(token, model));
   }
 
   clear() {
     this.token = null;
     this.model = null;
-    AsyncStorage.removeItem('pb_auth_mock').catch(() => {});
-    this.listeners.forEach((l) => l(null, null));
+    AsyncStorage.removeItem(STORAGE_KEY).catch((error) => console.warn('Sesioni lokal nuk u pastrua.', error));
+    this.listeners.forEach((listener) => listener(null, null));
   }
 
   loadFromCookie(_data: string) {}
-
-  onChange(cb: Listener) {
-    this.listeners.add(cb);
-    return () => { this.listeners.delete(cb); };
+  onChange(callback: (token: string | null, model: any) => void) {
+    this.listeners.add(callback);
+    return () => this.listeners.delete(callback);
   }
 }
 
 class MockCollection {
-  constructor(private name: string) {}
-  async getFullList(_opts?: any): Promise<any[]> { return []; }
-  async getList(_p = 1, _pp = 20, _o?: any): Promise<{ items: any[]; totalItems: number }> {
-    return { items: [], totalItems: 0 };
+  constructor(private name: string, private notify: (event: any) => void) {}
+
+  registerSubscriber(topic: string, callback: (event: any) => void) {
+    this.notify = (event) => { if (event.record && topic === '*') callback(event); };
   }
-  async getOne(_id: string, _o?: any): Promise<any> {
-    throw { status: 404, message: 'MOCK: serveri PocketBase është hequr (koleksioni ' + this.name + ')' };
+
+  private storageKey() { return `mock_pb_${this.name}`; }
+  private async records(): Promise<any[]> {
+    const raw = await AsyncStorage.getItem(this.storageKey());
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
   }
-  async getFirstListItem(_f: string, _o?: any): Promise<any> {
-    throw { status: 404, message: 'MOCK: serveri PocketBase është hequr (koleksioni ' + this.name + ')' };
+  private async persist(records: any[]) { await AsyncStorage.setItem(this.storageKey(), JSON.stringify(records)); }
+  async getFullList(options: any = {}): Promise<any[]> {
+    const records = await this.records();
+    if (options.sort) {
+      const key = String(options.sort).split('-')[0];
+      return [...records].sort((a, b) => String(a[key] ?? '').localeCompare(String(b[key] ?? '')));
+    }
+    return records;
+  }
+  async getList(_page = 1, _perPage = 20, _options?: any): Promise<{ items: any[]; totalItems: number }> {
+    const items = await this.records();
+    return { items, totalItems: items.length };
+  }
+  async getOne(id: string, _options?: any): Promise<any> {
+    const record = (await this.records()).find((item) => item.id === id);
+    if (!record) throw { status: 404, message: `MOCK: ${id} nuk u gjet.` };
+    return record;
+  }
+  async getFirstListItem(filter: string, _options?: any): Promise<any> {
+    const records = await this.records();
+    const match = records.find((item) => filter.split('&&').every((part) => {
+      const [key, raw] = part.split('=').map((value) => value.trim());
+      return item[key] === raw.replaceAll('"', '');
+    }));
+    if (!match) throw { status: 404, message: 'MOCK: element nuk u gjet.' };
+    return match;
   }
   async create(data: any): Promise<any> {
-    return { id: 'mock-' + Date.now(), created: new Date().toISOString(), ...data };
+    const record = { id: `mock-${Date.now()}-${Math.random().toString(16).slice(2)}`, created: new Date().toISOString(), ...data };
+    await this.persist([...(await this.records()), record]);
+    this.notify({ action: 'create', record });
+    return record;
   }
-  async update(_id: string, data: any): Promise<any> {
-    return { id: _id, ...data };
+  async update(id: string, data: any): Promise<any> {
+    const records = await this.records();
+    const index = records.findIndex((item) => item.id === id);
+    if (index < 0) throw { status: 404, message: `MOCK: ${id} nuk u gjet.` };
+    const record = { ...records[index], ...data, id, updated: new Date().toISOString() };
+    records[index] = record;
+    await this.persist(records);
+    this.notify({ action: 'update', record });
+    return record;
   }
-  async delete(_id: string): Promise<boolean> { return true; }
-  async subscribe(_t: string, _cb: (e: any) => void): Promise<void> {}
-  async unsubscribe(_t?: string): Promise<void> {}
-  async authWithPassword(_u: string, _p: string): Promise<any> {
-    throw { status: 0, message: 'MOCK: login me server është hequr — përdor butonin ADMIN.' };
+  async delete(id: string): Promise<boolean> {
+    await this.persist((await this.records()).filter((item) => item.id !== id));
+    return true;
   }
-  async authWithOAuth(_o: any): Promise<any> {
-    throw { status: 0, message: 'MOCK: OAuth është hequr — përdor butonin ADMIN.' };
+  async subscribe(topic: string, callback: (event: any) => void): Promise<() => void> {
+    this.registerSubscriber(topic, callback);
+    return () => {};
+  }
+  async unsubscribe(_topic?: string): Promise<void> { this.notify = () => {}; }
+  async authWithPassword(_username: string, _password: string): Promise<any> {
+    throw { status: 0, message: 'MOCK: autentikimi real kërkon EXPO_PUBLIC_POCKETBASE_URL.' };
+  }
+  async authWithOAuth(_options: any): Promise<any> {
+    throw { status: 0, message: 'MOCK: OAuth kërkon PocketBase real.' };
   }
 }
 
 class MockPocketBase {
   authStore = new MockAuthStore();
-  collection(name: string) { return new MockCollection(name); }
-  health = { check: async () => ({ message: 'MOCK: serveri është hequr', code: 200 }) };
-  files = { getUrl: (_r: any, _f: any) => '' };
+  private collectionSubscribers = new Set<(event: any) => void>();
+  collection(_name: string) { return new MockCollection(_name, (event) => this.collectionSubscribers.forEach((fn) => fn(event))); }
+  files = { getUrl: (_record: any, _file: any) => '' };
+  health = { check: async () => ({ code: 200, message: 'MOCK: backend i konfiguruar? jo.' }) };
 }
 
-export const pb: any = new MockPocketBase();
+function withOfflineQueue(name: string, collection: any) {
+  return new Proxy(collection, {
+    get(target, property, receiver) {
+      if (property === 'create') {
+        return async (data: any) => {
+          try {
+            return await target.create(data);
+          } catch (error) {
+            if (!isRetryableError(error)) throw error;
+            await enqueueMutation({ collection: name, action: 'create', data });
+            return { id: `queued-${Date.now()}`, queued: true, ...data };
+          }
+        };
+      }
+      if (property === 'update') {
+        return async (id: string, data: any) => {
+          try {
+            return await target.update(id, data);
+          } catch (error) {
+            if (!isRetryableError(error)) throw error;
+            await enqueueMutation({ collection: name, action: 'update', recordId: id, data });
+            return { id, queued: true, ...data };
+          }
+        };
+      }
+      if (property === 'delete') {
+        return async (id: string) => {
+          try {
+            return await target.delete(id);
+          } catch (error) {
+            if (!isRetryableError(error)) throw error;
+            await enqueueMutation({ collection: name, action: 'update', recordId: id, data: { _deleted: true } });
+            return true;
+          }
+        };
+      }
+      const value = Reflect.get(target, property, receiver);
+      return typeof value === 'function' ? value.bind(target) : value;
+    },
+  });
+}
+
+function proxyPocketBase(client: PocketBase) {
+  return new Proxy(client, {
+    get(target, property, receiver) {
+      if (property === 'collection') {
+        return (name: string) => withOfflineQueue(name, target.collection(name));
+      }
+      return Reflect.get(target, property, receiver);
+    },
+  });
+}
+
+export const isPocketBaseConfigured = isReal;
+export const pb: any = realPb ? proxyPocketBase(realPb) : new MockPocketBase();
 
 export const pbReady: Promise<void> = (async () => {
+  if (realPb) {
+    try {
+      const saved = await AsyncStorage.getItem(STORAGE_KEY);
+      if (saved) await (realPb.authStore as any).load(saved);
+      realPb.authStore.onChange((token, model) => {
+        const value = token && model ? JSON.stringify({ token, model }) : null;
+        const action = value ? AsyncStorage.setItem(STORAGE_KEY, value) : AsyncStorage.removeItem(STORAGE_KEY);
+        action.catch((error) => console.warn('Sesioni real nuk u ruajt.', error));
+      });
+    } catch (error) {
+      console.warn('Sesioni real nuk mund të rikthehet; po vazhdohet pa sesion.', error);
+    }
+    return;
+  }
   try {
-    const data = await AsyncStorage.getItem('pb_auth_mock');
+    const data = await AsyncStorage.getItem(STORAGE_KEY);
     if (data) {
       const parsed = JSON.parse(data);
       if (parsed?.token && parsed?.model) pb.authStore.save(parsed.token, parsed.model);

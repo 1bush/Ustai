@@ -62,6 +62,7 @@ import AIRoomPlannerScreen from './src/screens/AIRoomPlannerScreen';
 import AIMatjaScreen from './src/screens/AIMatjaScreen';
 
 import { regjistroPerNjoftime } from './src/lib/pushNotifications';
+import { flushMutations, pendingMutationCount } from './src/lib/offlineQueue';
 import { pb, pbReady } from './src/lib/pocketbase';
 import { seedCategories } from './src/lib/seedData';
 
@@ -151,10 +152,21 @@ export default function App() {
       });
     }
 
-    // seedCategories(); // E MBYLLUR PËR TESTIM (SERVER CALL)
+    // Sync mutations that were created while offline.
+    const syncOffline = async () => {
+      const count = await pendingMutationCount();
+      if (count > 0) await flushMutations(pb);
+    };
+    syncOffline().catch((error) => console.warn('Sinkronizimi offline dështoi.', error));
+    const syncTimer = setInterval(() => {
+      syncOffline().catch((error) => console.warn('Sinkronizimi periodik dështoi.', error));
+    }, 30000);
 
     setIsReady(true);
-    return () => unsubscribe();
+    return () => {
+      clearInterval(syncTimer);
+      unsubscribe();
+    };
   }, []);
 
   if (!isReady) return null;

@@ -1,6 +1,7 @@
 ﻿import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import { pb, isPocketBaseConfigured } from './pocketbase';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -54,9 +55,25 @@ export async function regjistroPerNjoftime() {
     });
   }
 
-  // Ruajtja e token-it në server është HEQUR (PocketBase mock).
-  // Kur rikthehet serveri real, rivendos bllokun nga pocketbase.ts.REAL.BAK
-  // if (pb.authStore.model && token) { ... }
+  // Persist the device token in PocketBase when a real backend is configured.
+  if (isPocketBaseConfigured && pb.authStore.model) {
+    try {
+      const record = {
+        user_id: pb.authStore.model.id,
+        token,
+        platform: Platform.OS,
+        device_id: null,
+        updated_at: new Date().toISOString(),
+      };
+      const existing = await pb.collection('device_tokens').getFirstListItem(
+        `user_id = "${pb.authStore.model.id}" && token = "${token}"`
+      );
+      if (existing) await pb.collection('device_tokens').update(existing.id, record);
+      else await pb.collection('device_tokens').create(record);
+    } catch (error) {
+      console.warn('Token-i push u mor, por nuk u ruajt në server.', error);
+    }
+  }
 
   return token;
 }
