@@ -1,1 +1,14 @@
-﻿import React from 'react'; import { View, Text } from 'react-native'; export default function Placeholder() { return <View><Text>Placeholder</Text></View>; }
+import React from 'react';
+
+import PlaceholderScreen from '../components/PlaceholderScreen';
+
+export default function UstaiAnalyticsScreen({ navigation }: any) {
+  return (
+    <PlaceholderScreen
+      titulli="Analitikat e Mia"
+      ikona="📊"
+      pershkrimi="Statistikat e punes nuk jane gati ende."
+      navigation={navigation}
+    />
+  );
+}

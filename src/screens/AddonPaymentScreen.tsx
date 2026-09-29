@@ -1,1 +1,14 @@
-﻿import React from 'react'; import { View, Text } from 'react-native'; export default function Placeholder() { return <View><Text>Placeholder</Text></View>; }
+import React from 'react';
+
+import PlaceholderScreen from '../components/PlaceholderScreen';
+
+export default function AddonPaymentScreen({ navigation }: any) {
+  return (
+    <PlaceholderScreen
+      titulli="Pagesa Shtesat"
+      ikona="💳"
+      pershkrimi="Pagesat shtese nuk jane aktive ende."
+      navigation={navigation}
+    />
+  );
+}
