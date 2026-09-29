@@ -1,5 +1,5 @@
 ﻿export const NGJYRAT = {
-  primare: '#FF7A1A',
+  primare: '#E11D2E',
   sfondi: '#0A0A0A',
   sfondiKarte: '#141414',
   teksti: '#FFFFFF',

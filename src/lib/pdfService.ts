@@ -9,7 +9,7 @@ export class PDFService {
         <head>
           <style>
             body { font-family: 'Helvetica'; padding: 20px; background: #fff; color: #333; }
-            h1 { color: #FF7A1A; text-align: center; }
+            h1 { color: #E11D2E; text-align: center; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
             th { background-color: #f2f2f2; }

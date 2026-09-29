@@ -51,7 +51,7 @@ export async function regjistroPerNjoftime() {
       name: 'default',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF7A1A',
+      lightColor: '#E11D2E',
     });
   }
 

@@ -17,7 +17,7 @@ from PIL import Image, ImageDraw
 # ─────────────────────────── ngjyrat e brendit ───────────────────────────
 # Përputhen me src/theme/colors.ts
 SFONDI = (0x0A, 0x0A, 0x0A, 255)  # NGJYRAT.sfondi
-PRIMARE = (0xFF, 0x7A, 0x1A, 255)  # NGJYRAT.primare
+PRIMARE = (0xE1, 0x1D, 0x2E, 255)  # NGJYRAT.primare
 
 # Google (ngjyrat zyrtare)
 G_BLUE = (66, 133, 244)

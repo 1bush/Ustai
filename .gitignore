@@ -49,3 +49,10 @@ bundle_*.txt
 gen_*.txt
 expo_cfg.txt
 *.bak
+
+# Python cache (nukune ne versionim)
+__pycache__/
+*.pyc
+
+# Backupe te logos te dorezshme (ruhen vetem lokalisht)
+*.yellow-backup.png

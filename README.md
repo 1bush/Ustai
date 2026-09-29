@@ -183,7 +183,7 @@ Dark Mode, ngjyrat në `src/theme/colors.ts`:
 
 ```typescript
 {
-  primare: '#FF7A1A',        // Portokalli
+  primare: '#E11D2E',        // E kuqja
   sfondi: '#0A0A0A',         // E zezë
   sfondiKarte: '#141414',    // Gri e errët
   teksti: '#FFFFFF',
