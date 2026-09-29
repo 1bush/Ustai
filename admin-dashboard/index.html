@@ -46,6 +46,10 @@
   <input id="passInput" placeholder="Fjalëkalimi" type="password" />
   <button onclick="hyrAdmin()">Hyr</button>
   <p id="loginError" style="color:red;font-size:13px;"></p>
+  <p style="font-size:12px;color:#8a8a8a;margin-top:14px;">
+    Serveri: <span id="pbInfo"></span><br />
+    <a href="#" id="pbNdrysho" style="color:#FF7A1A;">Ndrysho serverin</a>
+  </p>
 </div>
 
 <div id="dashboardView" style="display:none;">
@@ -88,12 +92,35 @@
 </div>
 
 <script>
-  // ===== WEBMASTER CONFIGURATION =====
-  // Update this URL to match your PocketBase server hostname
-  const CONFIG = {
-    pocketbaseUrl: "http://127.0.0.1:8090"
+// ===== WEBMASTER CONFIGURATION =====
+// URL-ja e serverit PocketBase. Me prioritet:
+//   1) ?pb=... ose localStorage 'ustai_pb_url'  (e vendosur nga browser-i)
+//   2) window.USTAI_PB_URL  (i vendosur manualisht, ose nga Render env var)
+//   3) fallback te hosti aktual (qe Render e shkruan vetë)
+const DEFAULT_PB = window.USTAI_PB_URL || (location.hostname + ":8090");
+const CONFIG = {
+  pocketbaseUrl: new URLSearchParams(location.search).get('pb')
+    || localStorage.getItem('ustai_pb_url')
+    || DEFAULT_PB
+};
+// Ruaje per perdoruesin qe mos duhet ta shkruaje perseri
+localStorage.setItem('ustai_pb_url', CONFIG.pocketbaseUrl);
+const pb = new PocketBase(CONFIG.pocketbaseUrl);
+
+// Shfaq serverin aktual dhe lejo ndrimin e tij
+document.addEventListener('DOMContentLoaded', () => {
+  const info = document.getElementById('pbInfo');
+  if (info) info.textContent = CONFIG.pocketbaseUrl;
+  const ndrysho = document.getElementById('pbNdrysho');
+  if (ndrysho) ndrysho.onclick = (e) => {
+    e.preventDefault();
+    const v = prompt("PocketBase URL (p.sh. https://db.ustai.al ose http://192.168.1.15:8090):", CONFIG.pocketbaseUrl);
+    if (v) {
+      localStorage.setItem('ustai_pb_url', v.trim());
+      location.search = '';
+    }
   };
-  const pb = new PocketBase(CONFIG.pocketbaseUrl);
+});
 
   function hyrAdmin() {
     const user = document.getElementById('emailInput').value;

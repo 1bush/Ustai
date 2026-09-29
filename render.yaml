@@ -1,0 +1,20 @@
+# ==========================================================
+#  USTAI — Render Blueprint
+#  Deploy ne Render: Dashboard -> New -> Blueprint -> lidh repo
+#  (ose CLI:  render blueprint launch  /  render.yaml ne root)
+# ==========================================================
+
+services:
+  # ---------------------------------------------------------------
+  # Paneli Admin — faqe statike (admin-dashboard/index.html)
+  # Render runtime: static  -> sherben direkt repo pa build
+  # ---------------------------------------------------------------
+  - type: web
+    name: ustai-admin
+    runtime: static
+    staticPublishPath: ./admin-dashboard
+    pullRequestPreviewsEnabled: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
