@@ -56,3 +56,6 @@ __pycache__/
 
 # Backupe te logos te dorezshme (ruhen vetem lokalisht)
 *.yellow-backup.png
+
+# Skema e Render Blueprint (cache lokale e skriptit validues)
+.render-schema.json
