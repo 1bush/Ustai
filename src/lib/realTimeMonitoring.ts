@@ -8,17 +8,37 @@ export class RealTimeMonitoringService {
    * Nis një sesion monitorimi
    */
   static async startWorkSession(jobId: string, ustaiId: string, klientId: string) {
-    try {
-      const data = await pb.collection('work_sessions').create({
-        job_id: jobId,
-        ustai_id: ustaiId,
-        klient_id: klientId,
-        status: 'ne_proces'
-      });
+    const data = await pb.collection('work_sessions').create({
+      job_id: jobId,
+      ustai_id: ustaiId,
+      klient_id: klientId,
+      status: 'ne_proces'
+    });
 
-      return data;
+    return data;
+  }
+
+  /**
+   * Nis gjurmimin e vendndodhjes dhe e RUAN abonimin, që stopLocationTracking()
+   * ta mbyllë vërtet. Më parë fusha ishte statike bosh dhe nuk ndalonte asgjë.
+   */
+  static async startLocationTracking(sessionId: string, intervalMs = 30000) {
+    await this.stopLocationTracking();
+    try {
+      const subscription = await Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.Balanced, distanceInterval: 50, timeInterval: intervalMs },
+        (pozicioni) => {
+          this.updateLocation(sessionId, {
+            lat: pozicioni.coords.latitude,
+            lng: pozicioni.coords.longitude,
+          }).catch((error) => console.warn('Përditësimi i vendndodhjes dështoi.', error));
+        }
+      );
+      this.locationSubscription = subscription;
+      return subscription;
     } catch (error) {
-      throw error;
+      console.warn('Gjurmimi i vendndodhjes nuk u nis.', error);
+      return null;
     }
   }
 
@@ -71,14 +91,12 @@ export class RealTimeMonitoringService {
    * Shto foto gjatë punës
    */
   static async addPhoto(sessionId: string, lloji: 'para' | 'gjat' | 'pas', photoUrl: string) {
-    try {
-      await pb.collection('work_updates').create({
-        session_id: sessionId,
-        mesazh: `Foto ${lloji}`,
-      });
-    } catch (error) {
-      throw error;
-    }
+    // photoUrl MË PARË nuk përdorehej fare — fotot nuk shkruheshin kurrë.
+    await pb.collection('work_updates').create({
+      session_id: sessionId,
+      mesazh: `Foto ${lloji}`,
+      foto_url: photoUrl,
+    });
   }
 
   /**
@@ -100,7 +118,11 @@ export class RealTimeMonitoringService {
    */
   static stopLocationTracking() {
     if (this.locationSubscription) {
-      this.locationSubscription.remove();
+      try {
+        this.locationSubscription.remove();
+      } catch (error) {
+        console.warn('Abonimi i vendndodhjes nuk u hoq.', error);
+      }
       this.locationSubscription = null;
     }
   }

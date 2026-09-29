@@ -49,19 +49,40 @@ class MockAuthStore {
 }
 
 class MockCollection {
+  private subscribers = new Map<string, (event: any) => void>();
+  /** Zinxhir i promisave — pengon humbjen e regjistrave kur create() quhet njëkohësisht. */
+  private writeChain: Promise<any> = Promise.resolve();
+
   constructor(private name: string, private notify: (event: any) => void) {}
 
   registerSubscriber(topic: string, callback: (event: any) => void) {
-    this.notify = (event) => { if (event.record && topic === '*') callback(event); };
+    // Regjistro PA mbivendosur notify-n: mban të gjitha subscriptions të gjallë.
+    this.subscribers.set(topic, callback);
+  }
+
+  private emit(event: any) {
+    const perTopic = this.subscribers.get('*');
+    if (perTopic) perTopic(event);
+    this.notify(event);
   }
 
   private storageKey() { return `mock_pb_${this.name}`; }
   private async records(): Promise<any[]> {
     const raw = await AsyncStorage.getItem(this.storageKey());
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.warn(`Të dhënat e "${this.name}" janë të dëmtuara; po fillojmë me listë bosh.`, error);
+      return [];
+    }
   }
-  private async persist(records: any[]) { await AsyncStorage.setItem(this.storageKey(), JSON.stringify(records)); }
+  /** Serializon shkrimin: lejon që thirrjet paralele të mos mbivendosen. */
+  private async persist(records: any[]) {
+    this.writeChain = this.writeChain.then(() => AsyncStorage.setItem(this.storageKey(), JSON.stringify(records)));
+    return this.writeChain;
+  }
   async getFullList(options: any = {}): Promise<any[]> {
     const records = await this.records();
     if (options.sort) {
@@ -91,7 +112,7 @@ class MockCollection {
   async create(data: any): Promise<any> {
     const record = { id: `mock-${Date.now()}-${Math.random().toString(16).slice(2)}`, created: new Date().toISOString(), ...data };
     await this.persist([...(await this.records()), record]);
-    this.notify({ action: 'create', record });
+    this.emit({ action: 'create', record });
     return record;
   }
   async update(id: string, data: any): Promise<any> {
@@ -101,7 +122,7 @@ class MockCollection {
     const record = { ...records[index], ...data, id, updated: new Date().toISOString() };
     records[index] = record;
     await this.persist(records);
-    this.notify({ action: 'update', record });
+    this.emit({ action: 'update', record });
     return record;
   }
   async delete(id: string): Promise<boolean> {
@@ -110,9 +131,10 @@ class MockCollection {
   }
   async subscribe(topic: string, callback: (event: any) => void): Promise<() => void> {
     this.registerSubscriber(topic, callback);
-    return () => {};
+    // Kthen funksion që heq VETËM këtë subscriber (përndryshe zhduken të gjitha).
+    return () => { this.subscribers.delete(topic); };
   }
-  async unsubscribe(_topic?: string): Promise<void> { this.notify = () => {}; }
+  async unsubscribe(topic = '*'): Promise<void> { this.subscribers.delete(topic); }
   async authWithPassword(_username: string, _password: string): Promise<any> {
     throw { status: 0, message: 'MOCK: autentikimi real kërkon EXPO_PUBLIC_POCKETBASE_URL.' };
   }

@@ -34,17 +34,26 @@ export default function JobPostScreen({ navigation, route }: any) {
   const [dukeAnalizuarAI, setDukeAnalizuarAI] = useState(false);
 
   useEffect(() => {
+    let aktiv = true;
     pb.collection('categories').getFullList({
       sort: 'emri'
-    }).then((res: any) => setKategorite(res));
+    })
+      .then((res: any) => { if (aktiv) setKategorite(res ?? []); })
+      .catch((error: unknown) => console.warn('Kategoritë nuk u ngarkuan.', error));
 
     (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
-        setRajoni({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({});
+          if (aktiv) setRajoni({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+        }
+      } catch (error) {
+        console.warn('Lokacioni nuk u lexua; po vazhdohet pa rajon.', error);
       }
     })();
+
+    return () => { aktiv = false; };
   }, []);
 
   const shtoFoto = async () => {

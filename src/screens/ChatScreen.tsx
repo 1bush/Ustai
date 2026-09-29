@@ -5,11 +5,13 @@ import { NGJYRAT } from '../theme/colors';
 import { ChatMessage } from '../components/ChatMessage';
 
 export default function ChatScreen({ route }: any) {
-  const { jobId, bidId, marresiId } = route.params;
+  const { jobId, bidId, marresiId } = route?.params ?? {};
   const [mesazhet, setMesazhet] = useState<any[]>([]);
   const [teksti, setTeksti] = useState('');
   const [imiId, setImiId] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
+
+  const paParametra = !bidId && !marresiId;
 
   useEffect(() => {
     let aktiv = true;
@@ -59,6 +61,16 @@ export default function ChatScreen({ route }: any) {
       console.warn('Mesazhi nuk u dërgua.', error);
     }
   };
+
+  if (paParametra) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
+        <Text style={{ color: NGJYRAT.tekstiZbehur, textAlign: 'center', fontSize: 15, lineHeight: 22 }}>
+          Chat-i hapet nga brenda një oferte ose profili të ustait.{'\n'}Nuk u dha asnjë punë dhe asnjë ofertë, prandaj nuk ka bisedë për t'u shfaqur.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

@@ -23,7 +23,7 @@ export default function ClientProfileScreen({ navigation }: any) {
       </View>
 
       <View style={styles.menu}>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PunetEMia')}>
           <Text style={styles.menuText}>📋 Punët e mia</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Referimet')}>

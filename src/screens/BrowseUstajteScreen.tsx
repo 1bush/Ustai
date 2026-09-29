@@ -9,11 +9,15 @@ export default function BrowseUstajteScreen({ navigation }: any) {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
+    let aktiv = true;
     pb.collection('profiles').getFullList({
       filter: 'role="ustai"',
       sort: '-rating',
       expand: 'user_id,category_id'
-    }).then(setUstallaret);
+    })
+      .then((res: any) => { if (aktiv) setUstallaret(res ?? []); })
+      .catch((error: unknown) => { console.warn('Lista e ustailëve nuk u ngarkua.', error); });
+    return () => { aktiv = false; };
   }, []);
 
   const filtered = ustallaret.filter(u =>

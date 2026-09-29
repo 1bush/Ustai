@@ -42,15 +42,23 @@ export async function flushMutations(pb: any) {
     const queue = await readQueue();
     const remaining: QueuedMutation[] = [];
     for (const item of queue) {
+      // Një 'update' pa recordId nuk mund të dërgohet — hiqet përgjithmonë.
+      if (item.action === 'update' && !item.recordId) {
+        console.warn('Mutacion pa recordId u hoq nga outbox.', item);
+        continue;
+      }
       try {
         const collection = pb.collection(item.collection);
         if (item.action === 'create') await collection.create(item.data);
         else await collection.update(item.recordId!, item.data);
       } catch (error) {
-        remaining.push({ ...item, attempts: item.attempts + 1 });
-        if (item.attempts >= 5) {
-          console.warn('Mutation u ruajt në outbox, por kërkon attention.', item);
+        const attempts = item.attempts + 1;
+        // Bëhu vetëm deri në 5 përpjekje; pastaj hiqet, që outbox-i të mos rritet pafund.
+        if (attempts >= 5) {
+          console.warn('Mutacioni dështoi 5 herë; hiqet nga outbox.', item);
+          continue;
         }
+        remaining.push({ ...item, attempts });
       }
     }
     await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));

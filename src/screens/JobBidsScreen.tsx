@@ -5,11 +5,12 @@ import { pb } from '@/lib/pocketbase';
 import { NGJYRAT } from '../theme/colors';
 
 export default function JobBidsScreen({ route, navigation }: any) {
-  const { jobId } = route.params;
+  const { jobId } = route?.params ?? {};
   const [ofertat, setOfertat] = useState<any[]>([]);
   const [puna, setPuna] = useState<any>(null);
 
   useEffect(() => {
+    if (!jobId) return;
     pb.collection('jobs').getOne(jobId, { expand: 'category_id' })
       .then(setPuna)
       .catch((error: unknown) => console.warn('Puna nuk mund të ngarkohet.', error));
@@ -72,14 +73,23 @@ export default function JobBidsScreen({ route, navigation }: any) {
         {puna && <Text style={styles.punaInfo}>{puna.expand?.category_id?.emri}</Text>}
       </View>
 
-      <FlatList
-        data={ofertat}
+      {!jobId && (
+        <View style={{ padding: 24, alignItems: 'center' }}>
+          <Text style={{ color: '#9e9e9e', textAlign: 'center', fontSize: 15, lineHeight: 22 }}>
+            Ky ekran shfaq ofertat e një pune specifike.{'\n'}Nuk u dha asnjë punë, prandaj nuk ka çfarë të shfaqet.
+          </Text>
+        </View>
+      )}
+
+      {jobId && (
+        <FlatList
+          data={ofertat}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.karta}>
             <View style={styles.rreshti}>
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{item.expand?.ustai_id?.emri[0]}</Text>
+                <Text style={styles.avatarText}>{(item.expand?.ustai_id?.emri || '?')[0]}</Text>
               </View>
               <View style={styles.info}>
                 <Text style={styles.emri}>{item.expand?.ustai_id?.emri} {item.expand?.ustai_id?.mbiemri}</Text>
@@ -105,7 +115,8 @@ export default function JobBidsScreen({ route, navigation }: any) {
         )}
         ListEmptyComponent={<Text style={styles.bosh}>Ende nuk ka oferta për këtë punë.</Text>}
         contentContainerStyle={{ padding: 16 }}
-      />
+        />
+      )}
     </SafeAreaView>
   );
 }

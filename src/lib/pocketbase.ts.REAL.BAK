@@ -1,4 +1,11 @@
-import PocketBase, { AsyncAuthStore } from 'pocketbase';
+// ⚠️ ARKIV — jo për përdorim. Ruan backup-n e lidhjes reale me PocketBase.
+//
+// Për 0.21.x AsyncAuthStore NUK EKZISTON (u hoq në 0.22). Kopjimi i këtij
+// skedari mbi pocketbase.ts do të japë:
+//   TypeError: undefined is not an object (nuk ka constructor)
+// Për të rikthyer serverin, shkruaj lidhjen nga e zera ose përdor
+// pocketbase.createAuthStore() të versionit 0.21+.
+import PocketBase from 'pocketbase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 

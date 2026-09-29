@@ -7,11 +7,12 @@ import VerifiedHistoryBadge from '../components/VerifiedHistoryBadge';
 import UstaiOfMonthBanner from '../components/UstaiOfMonthBanner';
 
 export default function UstaiPublicProfileScreen({ route, navigation }: any) {
-  const { profile } = route.params;
+  const profile = route?.params?.profile;
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!profile) return;
     // Supozojmë se kemi një koleksion 'reviews' që lidhet me profilin e ustait
     pb.collection('reviews').getFullList({
       filter: `ustai_id = "${profile.id}"`,
@@ -21,9 +22,21 @@ export default function UstaiPublicProfileScreen({ route, navigation }: any) {
       setReviews(res);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [profile.id]);
+  }, [profile?.id]);
 
-  const eshteHistoriEKeqe = profile.rating < 3.0;
+  if (!profile) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ padding: 24, alignItems: 'center' }}>
+          <Text style={{ color: '#9e9e9e', textAlign: 'center', fontSize: 15, lineHeight: 22 }}>
+            Profili publik hapet duke zgjedhur një ustai në listë.{'\n'}Nuk u dha asnjë profil, prandaj nuk ka çfarë të shfaqet.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const eshteHistoriEKeqe = (profile.rating ?? 0) < 3.0;
 
   return (
     <SafeAreaView style={styles.container}>

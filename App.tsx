@@ -21,6 +21,7 @@ import JobPostScreen from './src/screens/JobPostScreen';
 import JobBidsScreen from './src/screens/JobBidsScreen';
 import ReportUserScreen from './src/screens/ReportUserScreen';
 import ClientProfileScreen from './src/screens/ClientProfileScreen';
+import MyJobsScreen from './src/screens/MyJobsScreen';
 import RefundRequestScreen from './src/screens/RefundRequestScreen';
 
 // ═══ USTAI ═══
@@ -208,6 +209,7 @@ export default function App() {
               <Stack.Screen name="FletaKonformitetit" component={ConformitySheetScreen} />
               <Stack.Screen name="FurnitoretMaterialeve" component={MaterialSuppliersScreen} />
               <Stack.Screen name="ProfiliKlientit" component={ClientProfileScreen} />
+              <Stack.Screen name="PunetEMia" component={MyJobsScreen} />
               <Stack.Screen name="ProfiliPublikUstait" component={UstaiPublicProfileScreen} />
               <Stack.Screen name="InstantBook" component={InstantBookScreen} />
               <Stack.Screen name="InstantBookHyrese" component={InstantBookIncomingScreen} />

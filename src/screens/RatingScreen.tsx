@@ -5,7 +5,7 @@ import { pb } from '../lib/pocketbase';
 import { NGJYRAT } from '../theme/colors';
 
 export default function RatingScreen({ route, navigation }: any) {
-  const { jobId, targetId, roliTarget } = route.params; // targetId eshte ID e personit qe po vleresohet
+  const { jobId, targetId, roliTarget } = route?.params ?? {}; // targetId eshte ID e personit qe po vleresohet
   const [stars, setStars] = useState(5);
   const [useGoldenStar, setUseGoldenStar] = useState(false);
   const [comment, setComment] = useState('');
@@ -56,6 +56,18 @@ export default function RatingScreen({ route, navigation }: any) {
       setLoading(false);
     }
   };
+
+  if (!targetId) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ padding: 24, alignItems: 'center' }}>
+          <Text style={{ color: '#9e9e9e', textAlign: 'center', fontSize: 15, lineHeight: 22 }}>
+            Vlerësimi hapet pas përfundimit të një pune.{'\n'}Nuk u dha asnjë person për t'u vlerësuar.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>

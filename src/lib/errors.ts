@@ -64,7 +64,8 @@ export class NotFoundError extends AppError {
 
 export class RateLimitError extends AppError {
   constructor(readonly retryAfterMs = 15 * 60 * 1000) {
-    super('Shumë përpjekje. Prisni pak dhe provoni përsëri.', 'RATE_LIMITED', 429);
+    // retryAfterMs duhet të arrijë te details, ndryshe informacioni humbet.
+    super('Shumë përpjekje. Prisni pak dhe provoni përsëri.', 'RATE_LIMITED', 429, { retryAfterMs });
   }
 }
 

@@ -138,15 +138,15 @@ function validoPreventiv(paras: unknown): AIEstimate | null {
 function validoSkanim(paras: unknown): AIRoomScan | null {
   if (!isObj(paras)) return null;
   const d = paras['dimensionet_afersisht'];
+  // Kushte: gjeresi/gjatesi nuk mund të jenë 0 — UI-ja ndan me to (NaN / Infinity).
+  const gjeresi = isObj(d) && janNr(d['gjeresi']) && d['gjeresi'] > 0 ? d['gjeresi'] : 0.1;
+  const gjatesi = isObj(d) && janNr(d['gjatesi']) && d['gjatesi'] > 0 ? d['gjatesi'] : 0.1;
+  const lartesi = isObj(d) && janNr(d['lartesi']) && d['lartesi'] > 0 ? d['lartesi'] : 2.8;
   return {
     lloji: janTekst(paras['lloji']) ? paras['lloji'] : '',
     dimensionet_afersisht: isObj(d)
-      ? {
-          gjeresi: janNr(d['gjeresi']) ? d['gjeresi'] : 0,
-          gjatesi: janNr(d['gjatesi']) ? d['gjatesi'] : 0,
-          lartesi: janNr(d['lartesi']) ? d['lartesi'] : 2.8,
-        }
-      : { gjeresi: 0, gjatesi: 0, lartesi: 2.8 },
+      ? { gjeresi, gjatesi, lartesi }
+      : { gjeresi, gjatesi, lartesi },
     sygjerime_dizajni: siListeTekstesh(paras['sygjerime_dizajni']),
     planimetria_svg_data: janTekst(paras['planimetria_svg_data']) ? paras['planimetria_svg_data'] : '',
   };
@@ -165,7 +165,8 @@ function validoMatje(paras: unknown): AIRoomMeasurement | null {
           }))
           .filter((m) => m.muri !== '')
       : [],
-    siperfaqja_m2: janNr(paras['siperfaqja_m2']) ? paras['siperfaqja_m2'] : 0,
+    // siperfaqja_m2 nuk mund të jetë 0 — përdoruesi e ndan për cm²/m² (Infinity).
+    siperfaqja_m2: janNr(paras['siperfaqja_m2']) && paras['siperfaqja_m2'] > 0 ? paras['siperfaqja_m2'] : 0.01,
     perimetri_m: janNr(paras['perimetri_m']) ? paras['perimetri_m'] : 0,
     forma: janTekst(paras['forma']) ? paras['forma'] : '',
     zgjedhje_murale: janTekst(paras['zgjedhje_murale']) ? paras['zgjedhje_murale'] : '',

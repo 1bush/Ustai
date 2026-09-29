@@ -10,7 +10,7 @@ export default function VerifyOTPScreen({ navigation, route }: any) {
   const [refKod, setRefKod] = useState('');
   const [dukeVerifikuar, setDukeVerifikuar] = useState(false);
   const [sekonda, setSekonda] = useState(60);
-  const { tel, roli } = route.params;
+  const { tel, roli } = route?.params ?? {};
   const dukeUkycur = !roli;
 
   useEffect(() => {
@@ -30,7 +30,12 @@ export default function VerifyOTPScreen({ navigation, route }: any) {
     setDukeVerifikuar(true);
 
     try {
-      const username = tel.replace(/\D/g, '');
+      const username = String(tel || '').replace(/\D/g, '');
+      if (!username) {
+        setDukeVerifikuar(false);
+        Alert.alert('Gabim', 'Nuk u dha numri i telefonit. Kthehu dhe fillo nga e para.');
+        return;
+      }
       pb.authStore.save('mock-token', {
         id: 'mock-' + username,
         username,

@@ -28,8 +28,11 @@ export async function checkRateLimit(
   state: RateLimitState; 
   lockoutRemaining: number 
 }> {
-  // Bypass rate limit for admin testing
-  if (identifier.includes('697788899')) {
+  // ═══ RREGULL TESTI (jo i sigurt për prodhim) ═══
+  // Bypass i rate-limit për numrin e testuesit. Zgjidhja e sigurt do të ishte
+  // kontrolli i rolit nga serveri/PocketBase, jo krahasim i string-ut.
+  // Për prodhim: hiq TË GJITHË këtë bllok.
+  if (__DEV__ && process.env.EXPO_PUBLIC_BYPASS_RATELIMIT === '1' && identifier.includes('697788899')) {
     return {
       allowed: true,
       state: { attempts: 0, timestamp: Date.now(), locked: false, remainingTimeMinutes: 0 },
