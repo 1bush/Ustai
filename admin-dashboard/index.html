@@ -15,7 +15,7 @@
   .login-box h2 { color: #E11D2E; }
   .login-box input { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #2A2A2A; border-radius: 8px; box-sizing: border-box; background: #000; color: #fff; }
   .login-box button, .toolbar button, .form-inline button { background: #E11D2E; color: #000; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 700; }
-  main { display: flex; max-width: 1400px; margin: 0 auto; }
+  main { display: flex; flex-wrap: wrap; max-width: 1400px; margin: 0 auto; }
   nav.tabs { width: 200px; flex-shrink: 0; padding: 20px 10px; border-right: 1px solid #2A2A2A; min-height: calc(100vh - 60px); }
   nav.tabs button { display: block; width: 100%; text-align: left; background: transparent; border: none; color: #B3B3B3; padding: 12px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; margin-bottom: 4px; }
   nav.tabs button.aktiv { background: #1c0508; color: #E11D2E; font-weight: 700; }
@@ -36,6 +36,9 @@
   .badge-ok { background: #E11D2E; color: #000; padding: 2px 8px; border-radius: 6px; font-size: 11px; }
   .badge-ban { background: #E5484D; color: #fff; padding: 2px 8px; border-radius: 6px; font-size: 11px; }
   .form-inline { display: flex; gap: 8px; margin-bottom: 16px; }
+  .footeri { flex-basis: 100%; border-top: 1px solid #2A2A2A; padding: 14px 0 4px; margin-top: 18px; font-size: 12px; color: #8a8a8a; display: flex; flex-wrap: wrap; gap: 4px; }
+  .footeri a { color: #9CA3AF; }
+  .footeri a:hover { color: #E11D2E; }
 </style>
 </head>
 <body>
@@ -88,6 +91,17 @@
         <table id="tabelaKategorite"><thead><tr><th>Ikonë</th><th>Emri</th><th>Veprim</th></tr></thead><tbody></tbody></table>
       </div>
     </div>
+    <footer class="footeri">
+      <span>Serveri: <span id="pbInfoFooter"></span></span>
+      <span>
+        &middot;
+        <a href="https://dashboard.render.com/blueprint/exs-dau0lm142hec73dd1vpg/syncs" target="_blank" rel="noopener">Render Blueprint — Syncs</a>
+        &middot;
+        <a href="https://dashboard.render.com" target="_blank" rel="noopener">Render Dashboard</a>
+        &middot;
+        <a href="https://github.com/1bush/Ustai" target="_blank" rel="noopener">Repo</a>
+      </span>
+    </footer>
   </main>
 </div>
 
@@ -111,6 +125,8 @@ const pb = new PocketBase(CONFIG.pocketbaseUrl);
 document.addEventListener('DOMContentLoaded', () => {
   const info = document.getElementById('pbInfo');
   if (info) info.textContent = CONFIG.pocketbaseUrl;
+  const infoFooter = document.getElementById('pbInfoFooter');
+  if (infoFooter) infoFooter.textContent = CONFIG.pocketbaseUrl;
   const ndrysho = document.getElementById('pbNdrysho');
   if (ndrysho) ndrysho.onclick = (e) => {
     e.preventDefault();

@@ -14,6 +14,29 @@ me APK (`npm run build:apk`) ose publish-ohet në EAS.
 
 Pas kësaj çdo `git push` në `main` e bën deploy-un automatik.
 
+## 1b. Sync-i i Blueprint-it (Render Dashboard)
+
+Blueprint-i ekzistues (`exs-dau0lm142hec73dd1vpg`) ka faqen e vet të sync-it:
+
+<https://dashboard.render.com/blueprint/exs-dau0lm142hec73dd1vpg/syncs>
+
+Render-i e cache-on versionin e `render.yaml` nga momenti i **Apply**-it të parë. Nëse
+faqja ende shfaq një gabim të vjetër (p.sh. `autoDeploy and autoDeployTrigger cannot
+both be set`), fajlli në repo është OK por Render-i nuk e ka rilexuar ende:
+
+1. Hap faqen e **Syncs** më sipër dhe kliko **Sync now**.
+2. Nëse ende shfaq gabim, krijo Blueprint të ri: Dashboard → **New +** → **Blueprint**
+   → lidh `1bush/Ustai` → **Apply**.
+
+Para çdo push-i te `render.yaml`, valido lokalisht:
+
+```bash
+npm run validate:render   # python scripts/validate-render-blueprint.py
+```
+
+Skripti e kontrollon fajllin kundrejt skemës zyrtare
+(`https://render.com/schema/render.yaml.json`) dhe del me kod 1 nëse ka gabime.
+
 ## 2. Lidhja me PocketBase
 
 `admin-dashboard/index.html` nuk e ka më URL-në e hardkoduar
