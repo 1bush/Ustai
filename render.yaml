@@ -12,11 +12,11 @@ services:
   - type: web
     name: ustai-admin
     runtime: static
-    buildCommand: ""
     staticPublishPath: ./admin-dashboard
 
     # Deploy automatik kur ndryshon dega main
-    autoDeploy: true
+    # NOTE: Render-i e kerkon ose autoDeploy ose autoDeployTrigger, jo te dyja me sakte.
+    # autoDeployTrigger: commit == autoDeploy: true (deploy pas çdo commit-it ne dega).
     autoDeployTrigger: commit
     branch: main
 
