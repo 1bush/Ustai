@@ -12,8 +12,19 @@ services:
   - type: web
     name: ustai-admin
     runtime: static
+    buildCommand: ""
     staticPublishPath: ./admin-dashboard
-    pullRequestPreviewsEnabled: false
+
+    # Deploy automatik kur ndryshon dega main
+    autoDeploy: true
+    autoDeployTrigger: commit
+    branch: main
+
+    # Mos krijo preview per Pull Request (te ruajtur me API te re)
+    previews:
+      generation: "off"
+
+    # Faqe statike -> cdo rrugë shërbehet nga index.html
     routes:
       - type: rewrite
         source: /*
